@@ -3,6 +3,7 @@ package main
 import (
 	"archive/zip"
 	"bufio"
+	"debug/pe"
 	"errors"
 	"fmt"
 	"hash/crc32"
@@ -18,32 +19,38 @@ import (
 	"time"
 )
 
+// TODO: better messaging
+// TODO: better logging
+
 const (
-	UrlWin32 = "http://files.kaoriya.net/vim/vim74-kaoriya-win32.zip"
-	UrlWin64 = "http://files.kaoriya.net/vim/vim74-kaoriya-win64.zip"
+	urlWin32 = "http://files.kaoriya.net/vim/vim74-kaoriya-win32.zip"
+	urlWin64 = "http://files.kaoriya.net/vim/vim74-kaoriya-win64.zip"
 )
 
 type config struct {
 	name      string
 	url       string
 	targetDir string
-	workDir   string
+	dataDir   string
+	logDir    string
+	tmpDir    string
+	varDir    string
 }
 
-func (c config) outPath() (string, error) {
+func (c config) downloadPath() (string, error) {
 	u, err := url.Parse(c.url)
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(c.workDir, filepath.Base(u.Path)), nil
+	return filepath.Join(c.tmpDir, filepath.Base(u.Path)), nil
 }
 
 func (c config) recipePath() string {
-	return filepath.Join(c.workDir, c.name+"-recipe.txt")
+	return filepath.Join(c.varDir, c.name+"-recipe.txt")
 }
 
 func (c config) anchorPath() string {
-	return filepath.Join(c.workDir, c.name+"-anchor.txt")
+	return filepath.Join(c.varDir, c.name+"-anchor.txt")
 }
 
 func (c config) anchor() (time.Time, error) {
@@ -72,17 +79,77 @@ func (c config) updateAnchor(t time.Time) error {
 	return f.Sync()
 }
 
+type arch int
+
+const (
+	x86 arch = iota + 1
+	amd64
+)
+
+var errorUnknownArch = errors.New("unknown architecture")
+
+func getOSArch() (arch, error) {
+	v, ok := os.LookupEnv("PROCESSOR_ARCHITECTURE")
+	if !ok {
+		return 0, errorUnknownArch
+	}
+	switch strings.ToUpper(v) {
+	case "X86":
+		return x86, nil
+	case "AMD64":
+		return amd64, nil
+	default:
+		return 0, errorUnknownArch
+	}
+}
+
+func getExeArch(name string) (arch, error) {
+	f, err := pe.Open(name)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return getOSArch()
+		}
+		return 0, err
+	}
+	defer f.Close()
+
+	switch f.FileHeader.Machine {
+	case 0x014c:
+		return x86, nil
+	case 0x8664:
+		return amd64, nil
+	}
+	return 0, errorUnknownArch
+}
+
 func newConfig(dir string) (config, error) {
-	// TODO: set proper config
+	exe := filepath.Join(dir, "vim.exe")
+	arch, err := getExeArch(exe)
+	if err != nil {
+		return config{}, err
+	}
+	var name, url string
+	dataDir := filepath.Join(dir, "netupvim")
+	switch arch {
+	case x86:
+		name = "vim74-win32"
+		url = urlWin32
+	case amd64:
+		name = "vim74-win64"
+		url = urlWin64
+	}
 	return config{
-		name:      "vim74-win64",
-		url:       UrlWin64,
-		targetDir: "./tmp/root",
-		workDir:   "./tmp/var",
+		name:      name,
+		url:       url,
+		targetDir: dir,
+		dataDir:   dataDir,
+		logDir:    filepath.Join(dataDir, "log"),
+		tmpDir:    filepath.Join(dataDir, "tmp"),
+		varDir:    filepath.Join(dataDir, "var"),
 	}, nil
 }
 
-var downloadNotModified = errors.New("not modified")
+var errorNotModified = errors.New("not modified")
 
 func download(url, outpath string, pivot time.Time) error {
 	// FIXME: move to another place (preparation phase)
@@ -116,7 +183,7 @@ func download(url, outpath string, pivot time.Time) error {
 		}
 
 	case http.StatusNotModified:
-		return downloadNotModified
+		return errorNotModified
 
 	default:
 		return fmt.Errorf("unexpected response: %s", resp.Status)
@@ -219,7 +286,7 @@ func rotateFiles(name string, max int) error {
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
-	for i := max - 1; i >= 0; i -= 1 {
+	for i := max - 1; i >= 0; i-- {
 		curr := rotateName(name, i)
 		err := os.Rename(curr, last)
 		if err != nil && !os.IsNotExist(err) {
@@ -317,8 +384,7 @@ func cleanFiles(dir string, prev, curr fileInfoTable) {
 		if !isMatch(fpath, p) {
 			continue
 		}
-		fmt.Printf("remove=%s\n", fpath)
-		//os.Remove(fpath)
+		os.Remove(fpath)
 	}
 }
 
@@ -344,7 +410,7 @@ func extract(dir, zipName, recipeName string) error {
 }
 
 func update(c config) error {
-	tmp, err := c.outPath()
+	dp, err := c.downloadPath()
 	if err != nil {
 		return err
 	}
@@ -352,26 +418,29 @@ func update(c config) error {
 	if err != nil {
 		return err
 	}
-	if err := download(c.url, tmp, anchor); err != nil {
-		if err == downloadNotModified {
-			// TODO: return no update
+	if err := download(c.url, dp, anchor); err != nil {
+		if err == errorNotModified {
 			return nil
 		}
 		return err
 	}
 	anchor = time.Now()
-	if err := extract(c.targetDir, tmp, c.recipePath()); err != nil {
+	if err := extract(c.targetDir, dp, c.recipePath()); err != nil {
 		return err
 	}
 	c.updateAnchor(anchor)
-	if err := os.Remove(tmp); err != nil {
+	if err := os.Remove(dp); err != nil {
 		log.Printf("WARN: failed to remove: %s", err)
 	}
 	return nil
 }
 
 func main() {
-	c, err := newConfig(os.Args[0])
+	if len(os.Args) < 2 {
+		fmt.Printf("USAGE: netupvim {TARGET_DIR}")
+		os.Exit(1)
+	}
+	c, err := newConfig(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}
