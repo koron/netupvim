@@ -73,7 +73,6 @@ func (c config) updateAnchor(t time.Time) error {
 	}
 	defer f.Close()
 	if _, err := io.WriteString(f, t.Format(time.RFC3339)); err != nil {
-		// FIXME: should remove the anchor file.
 		return err
 	}
 	return f.Sync()
@@ -435,7 +434,10 @@ func update(c config) error {
 	if err := extract(c.targetDir, dp, c.recipePath()); err != nil {
 		return err
 	}
-	c.updateAnchor(anchor)
+	if err := c.updateAnchor(anchor); err != nil {
+		os.Remove(c.anchorPath())
+		return err
+	}
 	if err := os.Remove(dp); err != nil {
 		log.Printf("WARN: failed to remove: %s", err)
 	}
