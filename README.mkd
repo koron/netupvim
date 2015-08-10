@@ -1,3 +1,9 @@
 # netupvim
 
 Network updater for Vim (+kaoriya) on Windows 
+
+## 特徴
+
+*   更新がないときはI/Oをなるべく少なくする
+*   ローカルで更新したファイルは維持し、最新ファイルは別名で保存する
+*   実行中でもEXEやDLLは更新し、次回起動時に反映する
