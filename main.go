@@ -79,6 +79,25 @@ func (c config) updateAnchor(t time.Time) error {
 	return f.Sync()
 }
 
+func (c config) dirs() []string {
+	return []string{
+		c.targetDir,
+		c.dataDir,
+		c.logDir,
+		c.tmpDir,
+		c.varDir,
+	}
+}
+
+func (c config) prepare() error {
+	for _, dir := range c.dirs() {
+		if err := os.MkdirAll(dir, 0777); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type arch int
 
 const (
@@ -152,11 +171,6 @@ func newConfig(dir string) (config, error) {
 var errorNotModified = errors.New("not modified")
 
 func download(url, outpath string, pivot time.Time) error {
-	// FIXME: move to another place (preparation phase)
-	if err := os.MkdirAll(filepath.Dir(outpath), 0777); err != nil {
-		return err
-	}
-
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return err
@@ -227,10 +241,6 @@ func loadFileInfo(fname string) (fileInfoTable, error) {
 }
 
 func saveFileInfo(fname string, t fileInfoTable) error {
-	// FIXME: move to another place (preparation phase)
-	if err := os.MkdirAll(filepath.Dir(fname), 0777); err != nil {
-		return err
-	}
 	f, err := os.Create(fname)
 	if err != nil {
 		return nil
@@ -389,9 +399,6 @@ func cleanFiles(dir string, prev, curr fileInfoTable) {
 }
 
 func extract(dir, zipName, recipeName string) error {
-	if err := os.MkdirAll(dir, 0777); err != nil {
-		return err
-	}
 	prev, err := loadFileInfo(recipeName)
 	if err != nil {
 		log.Printf("WARN: failed to load recipe: %s", err)
@@ -442,6 +449,9 @@ func main() {
 	}
 	c, err := newConfig(os.Args[1])
 	if err != nil {
+		log.Fatal(err)
+	}
+	if err := c.prepare(); err != nil {
 		log.Fatal(err)
 	}
 	if err := update(c); err != nil {
