@@ -210,6 +210,38 @@ type fileInfo struct {
 	hash uint32
 }
 
+type compareResult int
+
+const (
+	fileNotExist = iota + 1
+	fileNotMatch
+	fileIsMatch
+)
+
+func (info fileInfo) compareWithFile(name string) (compareResult, error) {
+	fi, err := os.Stat(name)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return fileNotExist, nil
+		}
+		return 0, err
+	}
+	if (uint64)(fi.Size()) != info.size {
+		return fileNotMatch, nil
+	}
+	v, err := calcCRC32(name)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return fileNotExist, nil
+		}
+		return 0, err
+	}
+	if v != info.hash {
+		return fileNotMatch, nil
+	}
+	return fileIsMatch, nil
+}
+
 type fileInfoTable map[string]fileInfo
 
 const fileInfoFormat = "%s\t%d\t%08x\n"
@@ -306,18 +338,6 @@ func rotateFiles(name string, max int) error {
 	return nil
 }
 
-func isMatch(name string, info fileInfo) bool {
-	fi, err := os.Stat(name)
-	if err != nil || (uint64)(fi.Size()) != info.size {
-		return false
-	}
-	v, err := calcCRC32(name)
-	if err != nil || v != info.hash {
-		return false
-	}
-	return true
-}
-
 func extractZipFile(zf *zip.File, name string) error {
 	if err := os.MkdirAll(filepath.Dir(name), 0777); err != nil {
 		return err
@@ -355,19 +375,22 @@ func extractZip(zipName, dir string, prev fileInfoTable) (fileInfoTable, error) 
 			hash: zf.CRC32,
 		}
 		outName := filepath.Join(dir, zfName)
-		// evacuation.
+		// evacuation and optimization.
 		if p, ok := prev[zfName]; ok {
-			h, err := calcCRC32(outName)
-			// FIXME: should use isMatch().
-			if err == nil {
-				if h != p.hash {
-					outName = evacuateName(outName)
-				} else if h == zf.CRC32 {
-					// Ignore not updated file.
+			r, err := p.compareWithFile(outName)
+			if err != nil {
+				// TODO: log an error.
+				continue
+			}
+			switch r {
+			case fileNotMatch:
+				outName = evacuateName(outName)
+			case fileIsMatch:
+				// skip un-changed files.
+				if p.hash == zf.CRC32 {
 					continue
 				}
 			}
-			// FIXME: log an error if err != nil.
 		}
 		// rotation.
 		ext := strings.ToLower(path.Ext(zfName))
@@ -390,7 +413,7 @@ func cleanFiles(dir string, prev, curr fileInfoTable) {
 			continue
 		}
 		fpath := filepath.Join(dir, p.name)
-		if !isMatch(fpath, p) {
+		if r, _ := p.compareWithFile(fpath); r != fileIsMatch {
 			continue
 		}
 		os.Remove(fpath)
