@@ -3,7 +3,6 @@ package main
 import (
 	"archive/zip"
 	"bufio"
-	"debug/pe"
 	"errors"
 	"fmt"
 	"hash/crc32"
@@ -17,6 +16,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/koron/go-arch"
 )
 
 // TODO: better messaging
@@ -97,62 +98,19 @@ func (c config) prepare() error {
 	return nil
 }
 
-type arch int
-
-const (
-	x86 arch = iota + 1
-	amd64
-)
-
-var errorUnknownArch = errors.New("unknown architecture")
-
-func getOSArch() (arch, error) {
-	v, ok := os.LookupEnv("PROCESSOR_ARCHITECTURE")
-	if !ok {
-		return 0, errorUnknownArch
-	}
-	switch strings.ToUpper(v) {
-	case "X86":
-		return x86, nil
-	case "AMD64":
-		return amd64, nil
-	default:
-		return 0, errorUnknownArch
-	}
-}
-
-func getExeArch(name string) (arch, error) {
-	f, err := pe.Open(name)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return getOSArch()
-		}
-		return 0, err
-	}
-	defer f.Close()
-
-	switch f.FileHeader.Machine {
-	case 0x014c:
-		return x86, nil
-	case 0x8664:
-		return amd64, nil
-	}
-	return 0, errorUnknownArch
-}
-
 func newConfig(dir string) (config, error) {
 	exe := filepath.Join(dir, "vim.exe")
-	arch, err := getExeArch(exe)
+	cpu, err := arch.Exe(exe)
 	if err != nil {
 		return config{}, err
 	}
 	var name, url string
 	dataDir := filepath.Join(dir, "netupvim")
-	switch arch {
-	case x86:
+	switch cpu {
+	case arch.X86:
 		name = "vim74-win32"
 		url = urlWin32
-	case amd64:
+	case arch.AMD64:
 		name = "vim74-win64"
 		url = urlWin64
 	}
