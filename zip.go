@@ -3,6 +3,7 @@ package main
 import (
 	"archive/zip"
 	"io"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -33,7 +34,7 @@ func extractZip(zipName, dir string, stripCount int, prev fileInfoTable) (fileIn
 		if p, ok := prev[zfName]; ok {
 			r, err := p.compareWithFile(outName)
 			if err != nil {
-				// TODO: log an error.
+				log.Printf("failed to compare file %q: %s", outName, err)
 				continue
 			}
 			switch r {
