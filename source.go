@@ -14,6 +14,12 @@ import (
 	"github.com/koron/go-arch"
 )
 
+var (
+	errUnknownSource     = errors.New("unknown source")
+	errSourceNotFound    = errors.New("source not found")
+	errSourceNotModified = errors.New("source not modified")
+)
+
 type sourceType int
 
 const (
@@ -22,10 +28,17 @@ const (
 	canarySource
 )
 
-var (
-	errSourceNotFound    = errors.New("source not found")
-	errSourceNotModified = errors.New("source not modified")
-)
+func toSourceType(s string) (sourceType, error) {
+	switch s {
+	case "release":
+		return releaseSource, nil
+	case "develop":
+		return developSource, nil
+	case "canary":
+		return canarySource, nil
+	}
+	return 0, errUnknownSource
+}
 
 type source interface {
 	download(outdir string, pivot time.Time) (path string, err error)

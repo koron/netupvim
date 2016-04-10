@@ -21,7 +21,7 @@ type config struct {
 	varDir    string
 }
 
-func newConfig(dir string) (*config, error) {
+func newConfig(dir, src string) (*config, error) {
 	exe := filepath.Join(dir, "vim.exe")
 	cpu, err := arch.Exe(exe)
 	if err != nil {
@@ -35,10 +35,14 @@ func newConfig(dir string) (*config, error) {
 	case arch.AMD64:
 		name = "vim74-win64"
 	}
+	st, err := toSourceType(src)
+	if err != nil {
+		return nil, err
+	}
 	return &config{
 		name:      name,
 		cpu:       cpu,
-		source:    developSource,
+		source:    st,
 		targetDir: dir,
 		dataDir:   dataDir,
 		logDir:    filepath.Join(dataDir, "log"),

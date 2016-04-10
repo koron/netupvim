@@ -12,10 +12,9 @@ import (
 // TODO: better messaging
 
 var (
-	help    = flag.Bool("h", false, "show this message")
-	target  = flag.String("t", mustGetwd(), "target dir to upgrade/install")
-	restore = flag.Bool("r", false, "restore all files (WIP)")
-	beta    = flag.Bool("b", false, "use beta release")
+	help   = flag.Bool("h", false, "show this message")
+	target = flag.String("t", mustGetwd(), "target dir to upgrade/install")
+	src    = flag.String("s", "release", "source of update: release,develop,canary")
 )
 
 func mustGetwd() string {
@@ -117,7 +116,7 @@ func main() {
 		showHelp()
 		os.Exit(1)
 	}
-	c, err := newConfig(*target)
+	c, err := newConfig(*target, *src)
 	if err != nil {
 		log.Fatal(err)
 	}
