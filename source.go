@@ -17,7 +17,7 @@ import (
 type sourceType int
 
 const (
-	releaseSource sourceType = iota + 1
+	releaseSource sourceType = iota
 	developSource
 	canarySource
 )
@@ -95,7 +95,7 @@ var _ source = (*githubSource)(nil)
 
 func (gs *githubSource) download(d string, a time.Time) (string, error) {
 	// TODO:
-	return "", nil
+	return "", errors.New("not implmented yet")
 }
 
 var sources = map[sourceType]map[arch.CPU]source{

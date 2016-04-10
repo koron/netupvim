@@ -13,6 +13,7 @@ import (
 type config struct {
 	name      string
 	cpu       arch.CPU
+	source	  sourceType
 	targetDir string
 	dataDir   string
 	logDir    string
@@ -37,6 +38,7 @@ func newConfig(dir string) (*config, error) {
 	return &config{
 		name:      name,
 		cpu:       cpu,
+		source:    developSource,
 		targetDir: dir,
 		dataDir:   dataDir,
 		logDir:    filepath.Join(dataDir, "log"),

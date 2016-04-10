@@ -144,6 +144,10 @@ func extract(dir, zipName, recipeName string) error {
 }
 
 func update(c *config) error {
+	return update2(c)
+}
+
+func update1(c *config) error {
 	srcURL, err := determineSourceURL(c)
 	if err != nil {
 		return err
@@ -171,6 +175,37 @@ func update(c *config) error {
 		return err
 	}
 	if err := os.Remove(dp); err != nil {
+		log.Printf("WARN: failed to remove: %s", err)
+	}
+	return nil
+}
+
+func update2(c *config) error {
+	t, err := c.anchor()
+	if err != nil {
+		return err
+	}
+	s, err := determineSource(c.source, c.cpu)
+	if err != nil {
+		return err
+	}
+	p, err := s.download(c.tmpDir, t)
+	if err != nil {
+		if err == errSourceNotModified {
+			err = nil
+		}
+		return err
+	}
+	// capture anchor's new value.
+	t = time.Now()
+	if err := extract(c.targetDir, p, c.recipePath()); err != nil {
+		return err
+	}
+	if err := c.updateAnchor(t); err != nil {
+		os.Remove(c.anchorPath())
+		return err
+	}
+	if err := os.Remove(p); err != nil {
 		log.Printf("WARN: failed to remove: %s", err)
 	}
 	return nil
