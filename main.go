@@ -1,32 +1,15 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
-	"io"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
 	"time"
-
-	"github.com/koron/go-arch"
 )
 
 // TODO: better messaging
-
-const (
-	urlWin32     = "http://files.kaoriya.net/vim/vim74-kaoriya-win32.zip"
-	urlWin64     = "http://files.kaoriya.net/vim/vim74-kaoriya-win64.zip"
-	urlWin32Test = "http://files.kaoriya.net/vim/vim74-kaoriya-win32-test.zip"
-	urlWin64Test = "http://files.kaoriya.net/vim/vim74-kaoriya-win64-test.zip"
-)
-
-var (
-	errNotModified     = errors.New("not modified")
-	errUnsupportedArch = errors.New("unsupported architecture")
-)
 
 var (
 	help    = flag.Bool("h", false, "show this message")
@@ -41,62 +24,6 @@ func mustGetwd() string {
 		panic(err)
 	}
 	return d
-}
-
-func determineSourceURL(c *config) (string, error) {
-	if *beta {
-		switch c.cpu {
-		case arch.X86:
-			return urlWin32Test, nil
-		case arch.AMD64:
-			return urlWin64Test, nil
-		default:
-			return "", errUnsupportedArch
-		}
-	}
-	switch c.cpu {
-	case arch.X86:
-		return urlWin32, nil
-	case arch.AMD64:
-		return urlWin64, nil
-	default:
-		return "", errUnsupportedArch
-	}
-}
-
-func download(url, outpath string, pivot time.Time) error {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return err
-	}
-	if !pivot.IsZero() {
-		t := pivot.UTC().Format(http.TimeFormat)
-		req.Header.Set("If-Modified-Since", t)
-	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	switch resp.StatusCode {
-	case http.StatusOK:
-		f, err := os.Create(outpath)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		if _, err := io.Copy(f, resp.Body); err != nil {
-			return err
-		}
-
-	case http.StatusNotModified:
-		return errNotModified
-
-	default:
-		return fmt.Errorf("unexpected response: %s", resp.Status)
-	}
-	return nil
 }
 
 func saveFileInfo(fname string, t fileInfoTable) error {
@@ -144,43 +71,6 @@ func extract(dir, zipName, recipeName string) error {
 }
 
 func update(c *config) error {
-	return update2(c)
-}
-
-func update1(c *config) error {
-	srcURL, err := determineSourceURL(c)
-	if err != nil {
-		return err
-	}
-	dp, err := c.downloadPath(srcURL)
-	if err != nil {
-		return err
-	}
-	anchor, err := c.anchor()
-	if err != nil {
-		return err
-	}
-	if err := download(srcURL, dp, anchor); err != nil {
-		if err == errNotModified {
-			return nil
-		}
-		return err
-	}
-	anchor = time.Now()
-	if err := extract(c.targetDir, dp, c.recipePath()); err != nil {
-		return err
-	}
-	if err := c.updateAnchor(anchor); err != nil {
-		os.Remove(c.anchorPath())
-		return err
-	}
-	if err := os.Remove(dp); err != nil {
-		log.Printf("WARN: failed to remove: %s", err)
-	}
-	return nil
-}
-
-func update2(c *config) error {
 	t, err := c.anchor()
 	if err != nil {
 		return err
