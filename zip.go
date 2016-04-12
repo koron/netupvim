@@ -11,7 +11,17 @@ import (
 	"strings"
 )
 
-func extractZip(zipName, dir string, stripCount int, prev fileInfoTable) (fileInfoTable, error) {
+type extractProgressor func(curr, max uint64)
+
+func totalUncompressedSize(zr *zip.Reader) uint64 {
+	var sum uint64
+	for _, zf := range zr.File {
+		sum += zf.UncompressedSize64
+	}
+	return sum
+}
+
+func extractZip(zipName, dir string, stripCount int, prev fileInfoTable, ep extractProgressor) (fileInfoTable, error) {
 	// extract zip file.
 	zr, err := zip.OpenReader(zipName)
 	if err != nil {
@@ -19,9 +29,9 @@ func extractZip(zipName, dir string, stripCount int, prev fileInfoTable) (fileIn
 	}
 	defer zr.Close()
 	curr := make(fileInfoTable)
-	for _, zf := range zr.File {
+	proc := func (zf *zip.File) error {
 		if zf.Mode().IsDir() {
-			continue
+			return nil
 		}
 		zfName := stripPath(zf.Name, stripCount)
 		curr[zfName] = fileInfo{
@@ -35,7 +45,7 @@ func extractZip(zipName, dir string, stripCount int, prev fileInfoTable) (fileIn
 			r, err := p.compareWithFile(outName)
 			if err != nil {
 				log.Printf("failed to compare file %q: %s", outName, err)
-				continue
+				return nil
 			}
 			switch r {
 			case fileNotMatch:
@@ -43,7 +53,7 @@ func extractZip(zipName, dir string, stripCount int, prev fileInfoTable) (fileIn
 			case fileIsMatch:
 				// skip un-changed files.
 				if p.hash == zf.CRC32 {
-					continue
+					return nil
 				}
 			}
 		}
@@ -51,11 +61,25 @@ func extractZip(zipName, dir string, stripCount int, prev fileInfoTable) (fileIn
 		ext := strings.ToLower(path.Ext(zfName))
 		if ext == ".exe" || ext == ".dll" {
 			if err := rotateFiles(outName, 5); err != nil {
-				return nil, err
+				return err
 			}
 		}
 		if err := extractZipFile(zf, outName); err != nil {
+			return err
+		}
+		return nil
+	}
+	var (
+		max = totalUncompressedSize(&zr.Reader)
+		sum uint64
+	)
+	for _, zf := range zr.File {
+		if err := proc(zf); err != nil {
 			return nil, err
+		}
+		sum += zf.UncompressedSize64
+		if ep != nil {
+			ep(sum, max)
 		}
 	}
 	return curr, nil

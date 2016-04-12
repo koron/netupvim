@@ -58,7 +58,15 @@ func extract(dir, zipName, recipeName string) error {
 		log.Println("INFO: try to extract all files")
 		prev = make(fileInfoTable)
 	}
-	curr, err := extractZip(zipName, dir, 1, prev)
+	var last int = -1
+	curr, err := extractZip(zipName, dir, 1, prev, func(curr, max uint64) {
+		v := int(curr * 100 / max)
+		if v != last {
+			fmt.Printf("\rextract %d%%", v)
+			last = v
+		}
+	})
+	fmt.Println()
 	if err != nil {
 		return err
 	}
