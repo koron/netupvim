@@ -29,7 +29,7 @@ func extractZip(zipName, dir string, stripCount int, prev fileInfoTable, ep extr
 	}
 	defer zr.Close()
 	curr := make(fileInfoTable)
-	proc := func (zf *zip.File) error {
+	proc := func(zf *zip.File) error {
 		if zf.Mode().IsDir() {
 			return nil
 		}

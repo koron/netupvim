@@ -13,7 +13,7 @@ import (
 type config struct {
 	name      string
 	cpu       arch.CPU
-	source	  sourceType
+	source    sourceType
 	targetDir string
 	dataDir   string
 	logDir    string
