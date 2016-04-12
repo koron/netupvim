@@ -78,7 +78,16 @@ func update(c *config) error {
 	if err != nil {
 		return err
 	}
-	p, err := s.download(c.tmpDir, t)
+	var last int = -1
+	p, err := s.download(c.tmpDir, t, func(curr, max int64) {
+		// TODO: pretty progress.
+		v := int(curr * 100 / max)
+		if v != last {
+			fmt.Printf("\rdownload %d%%", v)
+			last = v
+		}
+	})
+	fmt.Println()
 	if err != nil {
 		if err == errSourceNotModified {
 			err = nil
