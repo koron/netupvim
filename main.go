@@ -58,7 +58,7 @@ func extract(dir, zipName, recipeName string) error {
 		log.Println("INFO: try to extract all files")
 		prev = make(fileInfoTable)
 	}
-	var last int = -1
+	last := -1
 	curr, err := extractZip(zipName, dir, 1, prev, func(curr, max uint64) {
 		v := int(curr * 100 / max)
 		if v != last {
@@ -86,7 +86,7 @@ func update(c *config) error {
 	if err != nil {
 		return err
 	}
-	var last int = -1
+	last := -1
 	p, err := s.download(c.tmpDir, t, func(curr, max int64) {
 		// TODO: pretty progress.
 		v := int(curr * 100 / max)
