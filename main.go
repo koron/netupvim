@@ -11,10 +11,13 @@ import (
 
 // TODO: better messaging
 
+// Options
 var (
 	help   = flag.Bool("h", false, "show this message")
 	target = flag.String("t", mustGetwd(), "target dir to upgrade/install")
 	src    = flag.String("s", "release", "source of update: release,develop,canary")
+
+	restoreMode = flag.Bool("restore", false, "force download & extract all files")
 )
 
 func mustGetwd() string {
@@ -117,6 +120,16 @@ func update(c *config) error {
 	return nil
 }
 
+func restore(c *config) error {
+	if err := os.Remove(c.anchorPath()); os.IsExist(err) {
+		return err
+	}
+	if err := os.Remove(c.recipePath()); os.IsExist(err) {
+		return err
+	}
+	return update(c)
+}
+
 func showHelp() {
 	fmt.Fprintf(os.Stderr, `%[1]s is tool to upgrade/install Vim (+kaoriya) in/to target dir.
 
@@ -140,7 +153,11 @@ func main() {
 	if err := c.prepare(); err != nil {
 		log.Fatal(err)
 	}
-	if err := update(c); err != nil {
+	proc := update
+	if *restoreMode {
+		proc = restore
+	}
+	if err := proc(c); err != nil {
 		log.Fatal(err)
 	}
 }
