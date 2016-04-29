@@ -10,7 +10,7 @@ import (
 	"github.com/koron/go-arch"
 )
 
-type config struct {
+type context struct {
 	name      string
 	cpu       arch.CPU
 	source    sourceType
@@ -21,7 +21,7 @@ type config struct {
 	varDir    string
 }
 
-func newConfig(dir, src string) (*config, error) {
+func newConfig(dir, src string) (*context, error) {
 	exe := filepath.Join(dir, "vim.exe")
 	cpu, err := arch.Exe(exe)
 	if err != nil {
@@ -39,7 +39,7 @@ func newConfig(dir, src string) (*config, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &config{
+	return &context{
 		name:      name,
 		cpu:       cpu,
 		source:    st,
@@ -51,7 +51,7 @@ func newConfig(dir, src string) (*config, error) {
 	}, nil
 }
 
-func (c *config) downloadPath(targetURL string) (string, error) {
+func (c *context) downloadPath(targetURL string) (string, error) {
 	u, err := url.Parse(targetURL)
 	if err != nil {
 		return "", err
@@ -59,15 +59,15 @@ func (c *config) downloadPath(targetURL string) (string, error) {
 	return filepath.Join(c.tmpDir, filepath.Base(u.Path)), nil
 }
 
-func (c *config) recipePath() string {
+func (c *context) recipePath() string {
 	return filepath.Join(c.varDir, c.name+"-recipe.txt")
 }
 
-func (c *config) anchorPath() string {
+func (c *context) anchorPath() string {
 	return filepath.Join(c.varDir, c.name+"-anchor.txt")
 }
 
-func (c *config) anchor() (time.Time, error) {
+func (c *context) anchor() (time.Time, error) {
 	f, err := os.Open(c.anchorPath())
 	if err != nil {
 		return time.Time{}, nil
@@ -80,7 +80,7 @@ func (c *config) anchor() (time.Time, error) {
 	return time.Parse(time.RFC3339, string(buf))
 }
 
-func (c *config) updateAnchor(t time.Time) error {
+func (c *context) updateAnchor(t time.Time) error {
 	f, err := os.Create(c.anchorPath())
 	if err != nil {
 		return err
@@ -92,7 +92,7 @@ func (c *config) updateAnchor(t time.Time) error {
 	return f.Sync()
 }
 
-func (c *config) dirs() []string {
+func (c *context) dirs() []string {
 	return []string{
 		c.targetDir,
 		c.dataDir,
@@ -102,7 +102,7 @@ func (c *config) dirs() []string {
 	}
 }
 
-func (c *config) prepare() error {
+func (c *context) prepare() error {
 	for _, dir := range c.dirs() {
 		if err := os.MkdirAll(dir, 0777); err != nil {
 			return err

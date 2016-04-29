@@ -80,7 +80,7 @@ func extract(dir, zipName, recipeName string) error {
 	return nil
 }
 
-func update(c *config) error {
+func update(c *context) error {
 	t, err := c.anchor()
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func update(c *config) error {
 	return nil
 }
 
-func restore(c *config) error {
+func restore(c *context) error {
 	if err := os.Remove(c.anchorPath()); os.IsExist(err) {
 		return err
 	}
