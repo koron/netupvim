@@ -11,15 +11,6 @@ import (
 
 // TODO: better messaging
 
-// Options
-var (
-	help   = flag.Bool("h", false, "show this message")
-	target = flag.String("t", mustGetwd(), "target dir to upgrade/install")
-	src    = flag.String("s", "release", "source of update: release,develop,canary")
-
-	restoreMode = flag.Bool("restore", false, "force download & extract all files")
-)
-
 func mustGetwd() string {
 	d, err := os.Getwd()
 	if err != nil {
@@ -141,16 +132,35 @@ Options are:
 }
 
 func main() {
-	flag.Parse()
-	if *help {
-		showHelp()
-		os.Exit(1)
-	}
+	// Load config and parse options.
 	conf, err := loadConfig("netupvim.ini")
 	if err != nil {
 		log.Fatal(err)
 	}
-	c, err := newContext(conf.targetDir(*target), conf.source(*src))
+	var (
+		defaultSource = "release"
+		defaultTarget = mustGetwd()
+	)
+	if conf.Source != "" {
+		defaultSource = conf.Source
+	}
+	if conf.TargetDir != "" {
+		defaultTarget = conf.TargetDir
+	}
+	var (
+		helpOpt    = flag.Bool("h", false, "show this message")
+		targetOpt  = flag.String("t", defaultTarget, "target dir to upgrade/install")
+		sourceOpt  = flag.String("s", defaultSource, "source of update: release,develop,canary")
+		restoreOpt = flag.Bool("restore", false, "force download & extract all files")
+	)
+	flag.Parse()
+	if *helpOpt {
+		showHelp()
+		os.Exit(1)
+	}
+
+	// Run update.
+	c, err := newContext(*targetOpt, *sourceOpt)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -158,7 +168,7 @@ func main() {
 		log.Fatal(err)
 	}
 	proc := update
-	if *restoreMode {
+	if *restoreOpt {
 		proc = restore
 	}
 	if err := proc(c); err != nil {
