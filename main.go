@@ -146,7 +146,11 @@ func main() {
 		showHelp()
 		os.Exit(1)
 	}
-	c, err := newConfig(*target, *src)
+	conf, err := loadConfig("netupvim.ini")
+	if err != nil {
+		log.Fatal(err)
+	}
+	c, err := newContext(conf.targetDir(*target), conf.source(*src))
 	if err != nil {
 		log.Fatal(err)
 	}

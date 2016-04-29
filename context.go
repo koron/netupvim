@@ -21,7 +21,7 @@ type context struct {
 	varDir    string
 }
 
-func newConfig(dir, src string) (*context, error) {
+func newContext(dir, src string) (*context, error) {
 	exe := filepath.Join(dir, "vim.exe")
 	cpu, err := arch.Exe(exe)
 	if err != nil {
