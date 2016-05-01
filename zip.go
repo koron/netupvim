@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+const zipRotateCount = 5
+
 type extractProgressor func(curr, max uint64)
 
 func totalUncompressedSize(zr *zip.Reader) uint64 {
@@ -52,7 +54,7 @@ func newZipFileProc(dir string, stripCount int, prev, curr fileInfoTable) func(z
 		// rotation.
 		ext := strings.ToLower(path.Ext(zfName))
 		if ext == ".exe" || ext == ".dll" {
-			if err := rotateFiles(outName, 5); err != nil {
+			if err := rotateFiles(outName, zipRotateCount); err != nil {
 				return err
 			}
 		}

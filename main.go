@@ -10,6 +10,8 @@ import (
 
 // TODO: better messaging
 
+const logRotateCount = 5
+
 func mustGetwd() string {
 	d, err := os.Getwd()
 	if err != nil {
@@ -54,11 +56,11 @@ func extract(dir, zipName, recipeName string) error {
 	curr, err := extractZip(zipName, dir, 1, prev, func(curr, max uint64) {
 		v := int(curr * 100 / max)
 		if v != last {
-			fmt.Printf("\rextract %d%%", v)
+			msgPrintf("\rextract %d%%", v)
 			last = v
 		}
 	})
-	fmt.Println()
+	msgPrintln()
 	if err != nil {
 		return err
 	}
@@ -83,11 +85,11 @@ func update(c *context) error {
 		// TODO: pretty progress.
 		v := int(curr * 100 / max)
 		if v != last {
-			fmt.Printf("\rdownload %d%%", v)
+			msgPrintf("\rdownload %d%%", v)
 			last = v
 		}
 	})
-	fmt.Println()
+	msgPrintln()
 	if err != nil {
 		if err == errSourceNotModified {
 			err = nil
@@ -165,6 +167,7 @@ func main() {
 	if err := c.prepare(); err != nil {
 		logFatal(err)
 	}
+	logSetup(c.logDir, logRotateCount)
 	proc := update
 	if *restoreOpt {
 		proc = restore
