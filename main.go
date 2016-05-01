@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -48,8 +47,7 @@ func cleanFiles(dir string, prev, curr fileInfoTable) {
 func extract(dir, zipName, recipeName string) error {
 	prev, err := loadFileInfo(recipeName)
 	if err != nil {
-		log.Printf("WARN: failed to load recipe: %s", err)
-		log.Println("INFO: try to extract all files")
+		logLoadRecipeFailed(err)
 		prev = make(fileInfoTable)
 	}
 	last := -1
@@ -65,7 +63,7 @@ func extract(dir, zipName, recipeName string) error {
 		return err
 	}
 	if err := saveFileInfo(recipeName, curr); err != nil {
-		log.Printf("WARN: failed to save recipe: %s", err)
+		logSaveRecipeFailed(err)
 	}
 	cleanFiles(dir, prev, curr)
 	return nil
@@ -106,7 +104,7 @@ func update(c *context) error {
 		return err
 	}
 	if err := os.Remove(p); err != nil {
-		log.Printf("WARN: failed to remove: %s", err)
+		logCleanArchiveFailed(err)
 	}
 	return nil
 }
@@ -135,7 +133,7 @@ func main() {
 	// Load config and parse options.
 	conf, err := loadConfig("netupvim.ini")
 	if err != nil {
-		log.Fatal(err)
+		logFatal(err)
 	}
 	var (
 		defaultSource = "release"
@@ -162,16 +160,16 @@ func main() {
 	// Run update.
 	c, err := newContext(*targetOpt, *sourceOpt)
 	if err != nil {
-		log.Fatal(err)
+		logFatal(err)
 	}
 	if err := c.prepare(); err != nil {
-		log.Fatal(err)
+		logFatal(err)
 	}
 	proc := update
 	if *restoreOpt {
 		proc = restore
 	}
 	if err := proc(c); err != nil {
-		log.Fatal(err)
+		logFatal(err)
 	}
 }

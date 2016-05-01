@@ -3,7 +3,6 @@ package main
 import (
 	"archive/zip"
 	"io"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -37,7 +36,7 @@ func newZipFileProc(dir string, stripCount int, prev, curr fileInfoTable) func(z
 		if p, ok := prev[zfName]; ok {
 			r, err := p.compareWithFile(outName)
 			if err != nil {
-				log.Printf("failed to compare file %q: %s", outName, err)
+				logCompareFileFailed(err, outName)
 				return nil
 			}
 			switch r {
