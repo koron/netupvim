@@ -21,15 +21,8 @@ func totalUncompressedSize(zr *zip.Reader) uint64 {
 	return sum
 }
 
-func extractZip(zipName, dir string, stripCount int, prev fileInfoTable, ep extractProgressor) (fileInfoTable, error) {
-	// extract zip file.
-	zr, err := zip.OpenReader(zipName)
-	if err != nil {
-		return nil, err
-	}
-	defer zr.Close()
-	curr := make(fileInfoTable)
-	proc := func(zf *zip.File) error {
+func newZipFileProc(dir string, stripCount int, prev, curr fileInfoTable) func(zf *zip.File) error {
+	return func(zf *zip.File) error {
 		if zf.Mode().IsDir() {
 			return nil
 		}
@@ -69,9 +62,20 @@ func extractZip(zipName, dir string, stripCount int, prev fileInfoTable, ep extr
 		}
 		return nil
 	}
+}
+
+func extractZip(zipName, dir string, stripCount int, prev fileInfoTable, ep extractProgressor) (fileInfoTable, error) {
+	// extract zip file.
+	zr, err := zip.OpenReader(zipName)
+	if err != nil {
+		return nil, err
+	}
+	defer zr.Close()
 	var (
-		max = totalUncompressedSize(&zr.Reader)
-		sum uint64
+		curr = make(fileInfoTable)
+		proc = newZipFileProc(dir, stripCount, prev, curr)
+		max  = totalUncompressedSize(&zr.Reader)
+		sum  uint64
 	)
 	for _, zf := range zr.File {
 		if err := proc(zf); err != nil {
