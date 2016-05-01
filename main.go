@@ -58,10 +58,9 @@ func extract(dir, zipName, recipeName string) error {
 	msgPrintf("extract archive\n")
 	last := -1
 	curr, err := extractZip(zipName, dir, 1, prev, func(curr, max uint64) {
-		// TODO: pretty progress.
 		v := int(curr * 100 / max)
 		if v != last {
-			msgPrintf("\r    ...%d%%", v)
+			msgPrintProgress(v)
 			last = v
 		}
 	})
@@ -89,10 +88,9 @@ func update(c *context) error {
 	logInfo("determined source: %s", s.String())
 	last := -1
 	p, err := s.download(c.tmpDir, t, func(curr, max int64) {
-		// TODO: pretty progress.
 		v := int(curr * 100 / max)
 		if v != last {
-			msgPrintf("\r    ...%d%%", v)
+			msgPrintProgress(v)
 			last = v
 		}
 	})
