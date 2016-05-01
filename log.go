@@ -88,5 +88,5 @@ func logSetup(dir string, count int) {
 	if err != nil {
 		logFatal(err)
 	}
-	logger = log.New(f, "", log.LstdFlags)
+	logger = log.New(f, "", log.LstdFlags|log.Lmicroseconds)
 }

@@ -22,10 +22,10 @@ func totalUncompressedSize(zr *zip.Reader) uint64 {
 	return sum
 }
 
-func newZipFileProc(dir string, stripCount int, prev, curr fileInfoTable) func(zf *zip.File) error {
-	return func(zf *zip.File) error {
+func newZipFileProc(dir string, stripCount int, prev, curr fileInfoTable) func(zf *zip.File) (bool, error) {
+	return func(zf *zip.File) (bool, error) {
 		if zf.Mode().IsDir() {
-			return nil
+			return false, nil
 		}
 		zfName := stripPath(zf.Name, stripCount)
 		curr[zfName] = fileInfo{
@@ -39,7 +39,7 @@ func newZipFileProc(dir string, stripCount int, prev, curr fileInfoTable) func(z
 			r, err := p.compareWithFile(outName)
 			if err != nil {
 				logCompareFileFailed(err, outName)
-				return nil
+				return false, nil
 			}
 			switch r {
 			case fileNotMatch:
@@ -47,7 +47,7 @@ func newZipFileProc(dir string, stripCount int, prev, curr fileInfoTable) func(z
 			case fileIsMatch:
 				// skip un-changed files.
 				if p.hash == zf.CRC32 {
-					return nil
+					return false, nil
 				}
 			}
 		}
@@ -55,13 +55,13 @@ func newZipFileProc(dir string, stripCount int, prev, curr fileInfoTable) func(z
 		ext := strings.ToLower(path.Ext(zfName))
 		if ext == ".exe" || ext == ".dll" {
 			if err := rotateFiles(outName, zipRotateCount); err != nil {
-				return err
+				return false, err
 			}
 		}
 		if err := extractZipFile(zf, outName); err != nil {
-			return err
+			return false, err
 		}
-		return nil
+		return true, nil
 	}
 }
 
@@ -77,10 +77,18 @@ func extractZip(zipName, dir string, stripCount int, prev fileInfoTable, ep extr
 		proc = newZipFileProc(dir, stripCount, prev, curr)
 		max  = totalUncompressedSize(&zr.Reader)
 		sum  uint64
+		sum2 uint64
 	)
+	defer func() {
+		logInfo("extracted %d bytes", sum)
+	}()
 	for _, zf := range zr.File {
-		if err := proc(zf); err != nil {
+		extracted, err := proc(zf)
+		if err != nil {
 			return nil, err
+		}
+		if extracted {
+			sum2 += zf.UncompressedSize64
 		}
 		sum += zf.UncompressedSize64
 		if ep != nil {

@@ -33,6 +33,19 @@ const (
 	canarySource
 )
 
+func (st sourceType) String() string {
+	switch st {
+	case releaseSource:
+		return "release"
+	case developSource:
+		return "develop"
+	case canarySource:
+		return "canary"
+	default:
+		return "(UNKNOWN)"
+	}
+}
+
 func toSourceType(s string) (sourceType, error) {
 	switch s {
 	case "release":
@@ -51,6 +64,9 @@ type source interface {
 	// download downloads source file to outdir, return its path name.
 	// if pivot is not zero, this checks changes of source from pivot.
 	download(outdir string, pivot time.Time, f progressFunc) (path string, err error)
+
+	// String returns a string to represent source.
+	String() string
 }
 
 type directSource struct {
@@ -61,6 +77,10 @@ var _ source = (*directSource)(nil)
 
 func (ds *directSource) download(d string, p time.Time, f progressFunc) (string, error) {
 	return download(ds.url, d, p, f)
+}
+
+func (ds *directSource) String() string {
+	return fmt.Sprintf("direct: URL=%s", ds.url)
 }
 
 type githubSource struct {
@@ -79,6 +99,7 @@ func (gs *githubSource) download(d string, p time.Time, f progressFunc) (string,
 	if !p.IsZero() && p.After(a.UpdatedAt) {
 		return "", errSourceNotModified
 	}
+	msgPrintln("found newer release on GitHub")
 	return download(a.DownloadURL, d, p, f)
 }
 
@@ -104,6 +125,11 @@ func (gs *githubSource) fetchAsset() (*github.Asset, error) {
 		return nil, errGithubIncompleteAsset
 	}
 	return t, nil
+}
+
+func (gs *githubSource) String() string {
+	return fmt.Sprintf("GitHub: %s/%s pattern=%s",
+		gs.user, gs.project, gs.namePat.String())
 }
 
 var sources = map[sourceType]map[arch.CPU]source{
@@ -166,6 +192,7 @@ func downloadAsFile(inURL, outPath string, pivot time.Time, pf progressFunc) err
 		t := pivot.UTC().Format(http.TimeFormat)
 		req.Header.Set("If-Modified-Since", t)
 	}
+	logInfo("download URL %s as file %s", inURL, outPath)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
@@ -174,6 +201,7 @@ func downloadAsFile(inURL, outPath string, pivot time.Time, pf progressFunc) err
 
 	switch resp.StatusCode {
 	case http.StatusOK:
+		msgPrintf("download %s\n", inURL)
 		return saveBody(outPath, resp, pf)
 	case http.StatusNotModified:
 		return errSourceNotModified

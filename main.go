@@ -8,8 +8,6 @@ import (
 	"time"
 )
 
-// TODO: better messaging
-
 const logRotateCount = 5
 
 func mustGetwd() string {
@@ -23,11 +21,14 @@ func mustGetwd() string {
 func saveFileInfo(fname string, t fileInfoTable) error {
 	f, err := os.Create(fname)
 	if err != nil {
-		return nil
+		return err
 	}
 	defer f.Close()
 	for _, v := range t {
-		fmt.Fprintf(f, fileInfoFormat, v.name, v.size, v.hash)
+		_, err := fmt.Fprintf(f, fileInfoFormat, v.name, v.size, v.hash)
+		if err != nil {
+			return err
+		}
 	}
 	return f.Sync()
 }
@@ -43,6 +44,7 @@ func cleanFiles(dir string, prev, curr fileInfoTable) {
 			continue
 		}
 		os.Remove(fpath)
+		logInfo("remove unused file %s", fpath)
 	}
 }
 
@@ -52,11 +54,14 @@ func extract(dir, zipName, recipeName string) error {
 		logLoadRecipeFailed(err)
 		prev = make(fileInfoTable)
 	}
+	logInfo("extract archive: %s", zipName)
+	msgPrintf("extract archive\n")
 	last := -1
 	curr, err := extractZip(zipName, dir, 1, prev, func(curr, max uint64) {
+		// TODO: pretty progress.
 		v := int(curr * 100 / max)
 		if v != last {
-			msgPrintf("\rextract %d%%", v)
+			msgPrintf("\r    ...%d%%", v)
 			last = v
 		}
 	})
@@ -68,6 +73,7 @@ func extract(dir, zipName, recipeName string) error {
 		logSaveRecipeFailed(err)
 	}
 	cleanFiles(dir, prev, curr)
+	logInfo("extract completed successfully")
 	return nil
 }
 
@@ -80,22 +86,25 @@ func update(c *context) error {
 	if err != nil {
 		return err
 	}
+	logInfo("determined source: %s", s.String())
 	last := -1
 	p, err := s.download(c.tmpDir, t, func(curr, max int64) {
 		// TODO: pretty progress.
 		v := int(curr * 100 / max)
 		if v != last {
-			msgPrintf("\rdownload %d%%", v)
+			msgPrintf("\r    ...%d%%", v)
 			last = v
 		}
 	})
 	msgPrintln()
 	if err != nil {
 		if err == errSourceNotModified {
+			logInfo("no updates found")
 			err = nil
 		}
 		return err
 	}
+	logInfo("download completed successfully")
 	// capture anchor's new value.
 	t = time.Now()
 	if err := extract(c.targetDir, p, c.recipePath()); err != nil {
@@ -118,6 +127,7 @@ func restore(c *context) error {
 	if err := os.Remove(c.recipePath()); os.IsExist(err) {
 		return err
 	}
+	logInfo("deleted anchor and recipe to restore")
 	return update(c)
 }
 
@@ -168,6 +178,8 @@ func main() {
 		logFatal(err)
 	}
 	logSetup(c.logDir, logRotateCount)
+	logInfo("context: CPU=%s source=%s dir=%s",
+		c.cpu.String(), c.source.String(), c.targetDir)
 	proc := update
 	if *restoreOpt {
 		proc = restore
