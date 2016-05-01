@@ -1,14 +1,8 @@
 @ECHO OFF
 SETLOCAL
-SET BASEDIR=%~dp0
-SET TARGET_DIR=%BASEDIR%
-GOTO :MAIN
+SET TARGET_DIR=%~dp0
 
-:MAIN
+netupvim.exe -t %TARGET_DIR%
 
-netupvim.exe %TARGET_DIR%
-GOTO :END
-
-:END
-ECHO 約10秒後にこのウィンドウは自動的に閉じます。
+ECHO This window will be closed after 10 seconds.
 PING localhost -n 10 > nul

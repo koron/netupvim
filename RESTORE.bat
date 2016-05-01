@@ -1,23 +1,8 @@
 @ECHO OFF
 SETLOCAL
-SET BASEDIR=%~dp0
-SET TARGET_DIR=%BASEDIR%
-GOTO :MAIN
+SET TARGET_DIR=%~dp0
 
-:DELETE
-IF EXIST "%1" DEL /F /Q "%1"
-EXIT /B 0
+netupvim.exe -t %TARGET_DIR% -restore
 
-:MAIN
-
-CALL :DELETE %TARGET_DIR%netupvim\var\vim74-win32-anchor.txt
-CALL :DELETE %TARGET_DIR%netupvim\var\vim74-win32-recipe.txt
-CALL :DELETE %TARGET_DIR%netupvim\var\vim74-win64-anchor.txt
-CALL :DELETE %TARGET_DIR%netupvim\var\vim74-win64-recipe.txt
-
-netupvim.exe %TARGET_DIR%
-GOTO :END
-
-:END
-ECHO 約10秒後にこのウィンドウは自動的に閉じます。
+ECHO This window will be closed after 10 seconds.
 PING localhost -n 10 > nul
