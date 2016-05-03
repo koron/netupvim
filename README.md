@@ -1,9 +1,9 @@
 # netupvim
 
+[Jump to English](#english)
+
 netupvim は Windows に Vim (香り屋版) をネットワーク経由で更新、修復、もしくは
 インストールするためのプログラムです。
-
-[Description in English](#english)
 
 ## 使い方
 
@@ -42,6 +42,35 @@ Vim をインストールしていない状態で更新を実行すると、イ�
 
 ログファイルは `netupvim\log` というフォルダの下に、実行時刻をファイル名として
 保存されています。例: `20160502T021805+0900.log`
+
+## エキスパート向け情報
+
+### 実行回数制限
+
+netupvim は GitHub API の回数制限の影響を受けます。そのため短時間に何度も実行す
+ると(1時間に50回程度以上の頻度で)、更新チェックに失敗するようになります。制限時
+にはIPアドレス単位での制限となるため、ルーターを通して複数のコンピューターが接
+続されている場合には、一括で制限を受けるため注意してください。
+
+### 開発版の利用
+
+開発版を利用したい場合には、netupvim.exe と同じ場所に netupvim.ini という名前の
+ファイルを置き、以下の内容を記述してください。
+
+```ini
+# 開発版
+source = "develop"
+```
+
+また人柱版を利用したい場合には、netupvim.ini の内容は以下のようにしてください。
+
+```ini
+# 人柱版
+source = "canary"
+```
+
+これらの版はあくまでも開発・実験用であり、予告なく不安定な動作の Vim が配信され
+る可能性があることに留意してください。
 
 ---
 
@@ -82,4 +111,9 @@ When you met some troubles, plesae send log file to the issue tracker.
 
 <https://github.com/koron/netupvim/issues/new>
 
-Netupvim's log files are saved into `netupvim\log` folder with name which determined from the time to execute.  Ex: `20160502T021805+0900.log`
+Netupvim's log files are saved into `netupvim\log` folder with name which
+determined from the time to execute.  Ex: `20160502T021805+0900.log`
+
+## For Expert
+
+TODO: translate me.
