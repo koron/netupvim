@@ -11,7 +11,6 @@ import (
 )
 
 type context struct {
-	name      string
 	cpu       arch.CPU
 	source    sourceType
 	targetDir string
@@ -27,20 +26,12 @@ func newContext(dir, src string) (*context, error) {
 	if err != nil {
 		return nil, err
 	}
-	var name string
 	dataDir := filepath.Join(dir, "netupvim")
-	switch cpu {
-	case arch.X86:
-		name = "vim74-win32"
-	case arch.AMD64:
-		name = "vim74-win64"
-	}
 	st, err := toSourceType(src)
 	if err != nil {
 		return nil, err
 	}
 	return &context{
-		name:      name,
 		cpu:       cpu,
 		source:    st,
 		targetDir: dir,
@@ -49,6 +40,17 @@ func newContext(dir, src string) (*context, error) {
 		tmpDir:    filepath.Join(dataDir, "tmp"),
 		varDir:    filepath.Join(dataDir, "var"),
 	}, nil
+}
+
+func (c *context) name() string {
+	switch c.cpu {
+	case arch.X86:
+		return "vim74-win32"
+	case arch.AMD64:
+		return "vim74-win64"
+	default:
+		return ""
+	}
 }
 
 func (c *context) downloadPath(targetURL string) (string, error) {
@@ -60,11 +62,11 @@ func (c *context) downloadPath(targetURL string) (string, error) {
 }
 
 func (c *context) recipePath() string {
-	return filepath.Join(c.varDir, c.name+"-recipe.txt")
+	return filepath.Join(c.varDir, c.name()+"-recipe.txt")
 }
 
 func (c *context) anchorPath() string {
-	return filepath.Join(c.varDir, c.name+"-anchor.txt")
+	return filepath.Join(c.varDir, c.name()+"-anchor.txt")
 }
 
 func (c *context) anchor() (time.Time, error) {

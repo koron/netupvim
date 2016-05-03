@@ -16,6 +16,9 @@ type Config struct {
 	// TargetDir is target directory to update.  Default is current working
 	// directory.
 	TargetDir string `toml:"target_dir"`
+
+	// CPU is target CPU architecture: "x86" or "amd64"
+	CPU string `toml:"cpu"`
 }
 
 func loadConfig(name string) (*Config, error) {

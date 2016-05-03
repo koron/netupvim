@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/koron/go-arch"
 )
 
 const logRotateCount = 5
@@ -140,7 +142,7 @@ Options are:
 }
 
 func main() {
-	// Load config and parse options.
+	// Load config.
 	conf, err := loadConfig("netupvim.ini")
 	if err != nil {
 		logFatal(err)
@@ -148,6 +150,7 @@ func main() {
 	var (
 		defaultSource = "release"
 		defaultTarget = mustGetwd()
+		cpu           arch.CPU
 	)
 	if conf.Source != "" {
 		defaultSource = conf.Source
@@ -155,6 +158,10 @@ func main() {
 	if conf.TargetDir != "" {
 		defaultTarget = conf.TargetDir
 	}
+	if conf.CPU != "" {
+		cpu = arch.ParseCPU(conf.CPU)
+	}
+	// Parse options.
 	var (
 		helpOpt    = flag.Bool("h", false, "show this message")
 		targetOpt  = flag.String("t", defaultTarget, "target dir to upgrade/install")
@@ -171,6 +178,9 @@ func main() {
 	c, err := newContext(*targetOpt, *sourceOpt)
 	if err != nil {
 		logFatal(err)
+	}
+	if cpu != 0 {
+		c.cpu = cpu
 	}
 	if err := c.prepare(); err != nil {
 		logFatal(err)
