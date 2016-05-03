@@ -1,3 +1,5 @@
+include VERSION
+
 default: test
 
 test:
@@ -21,4 +23,18 @@ report:
 	@echo ""
 	golint ./...
 
-.PHONY: test lint cyclo report
+exe: netupvim.exe
+
+zip: netupvim-$(VERSION).zip
+
+clean:
+	go clean
+	rm -f netupvim-v*.zip
+
+.PHONY: test lint cyclo report zip
+
+netupvim-$(VERSION).zip: netupvim.exe
+	zip -r9 netupvim-$(VERSION).zip netupvim.exe UPDATE.bat RESTORE.bat
+
+netupvim.exe:
+	GOOS=windows GOARCH=386 go build
