@@ -176,6 +176,12 @@ func main() {
 	if conf.GithubToken != "" {
 		githubToken = conf.GithubToken
 	}
+	if conf.DownloadTimeout != "" {
+		downloadTimeout, err = time.ParseDuration(conf.DownloadTimeout)
+		if err != nil {
+			logFatal(err)
+		}
+	}
 
 	// Parse options.
 	var (

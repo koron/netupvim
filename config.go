@@ -25,6 +25,9 @@ type Config struct {
 
 	// GithubUser is token which be used for github's basic auth.
 	GithubToken string `toml:"github_token"`
+
+	// DownloadTimeout is timeout for downloading archive (default: "5min")
+	DownloadTimeout string
 }
 
 func loadConfig(name string) (*Config, error) {
