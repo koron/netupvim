@@ -16,7 +16,6 @@ import (
 )
 
 var (
-	errUnknownSource     = errors.New("unknown source")
 	errSourceNotFound    = errors.New("source not found")
 	errSourceNotModified = errors.New("source not modified")
 
@@ -25,39 +24,6 @@ var (
 	errGithubIncompleteAsset = errors.New("incomplete github asset")
 )
 
-type sourceType int
-
-const (
-	releaseSource sourceType = iota
-	developSource
-	canarySource
-)
-
-func (st sourceType) String() string {
-	switch st {
-	case releaseSource:
-		return "release"
-	case developSource:
-		return "develop"
-	case canarySource:
-		return "canary"
-	default:
-		return "(UNKNOWN)"
-	}
-}
-
-func toSourceType(s string) (sourceType, error) {
-	switch s {
-	case "release":
-		return releaseSource, nil
-	case "develop":
-		return developSource, nil
-	case "canary":
-		return canarySource, nil
-	}
-	return 0, errUnknownSource
-}
-
 type progressFunc func(curr, max int64)
 
 type source interface {
@@ -65,18 +31,25 @@ type source interface {
 	// if pivot is not zero, this checks changes of source from pivot.
 	download(outdir string, pivot time.Time, f progressFunc) (path string, err error)
 
+	stripCount() int
+
 	// String returns a string to represent source.
 	String() string
 }
 
 type directSource struct {
-	url string
+	url   string
+	strip int
 }
 
 var _ source = (*directSource)(nil)
 
 func (ds *directSource) download(d string, p time.Time, f progressFunc) (string, error) {
 	return download(ds.url, d, p, f)
+}
+
+func (ds *directSource) stripCount() int {
+	return ds.strip
 }
 
 func (ds *directSource) String() string {
@@ -87,6 +60,7 @@ type githubSource struct {
 	user    string
 	project string
 	namePat *regexp.Regexp
+	strip   int
 }
 
 var _ source = (*githubSource)(nil)
@@ -101,6 +75,10 @@ func (gs *githubSource) download(d string, p time.Time, f progressFunc) (string,
 	}
 	msgPrintln("found newer release on GitHub")
 	return download(a.DownloadURL, d, p, f)
+}
+
+func (gs *githubSource) stripCount() int {
+	return gs.strip
 }
 
 func (gs *githubSource) fetchAsset() (*github.Asset, error) {
@@ -132,39 +110,59 @@ func (gs *githubSource) String() string {
 		gs.user, gs.project, gs.namePat.String())
 }
 
-var sources = map[sourceType]map[arch.CPU]source{
-	releaseSource: {
+var sources = map[string]map[arch.CPU]source{
+	"release": {
 		arch.X86: &githubSource{
 			user:    "koron",
 			project: "vim-kaoriya",
 			namePat: regexp.MustCompile(`-win32-.*\.zip$`),
+			strip:   1,
 		},
 		arch.AMD64: &githubSource{
 			user:    "koron",
 			project: "vim-kaoriya",
 			namePat: regexp.MustCompile(`-win64-.*\.zip$`),
+			strip:   1,
 		},
 	},
-	developSource: {
+	"develop": {
 		arch.X86: &directSource{
-			url: "http://files.kaoriya.net/vim/vim74-kaoriya-win32.zip",
+			url:   "http://files.kaoriya.net/vim/vim74-kaoriya-win32.zip",
+			strip: 1,
 		},
 		arch.AMD64: &directSource{
-			url: "http://files.kaoriya.net/vim/vim74-kaoriya-win64.zip",
+			url:   "http://files.kaoriya.net/vim/vim74-kaoriya-win64.zip",
+			strip: 1,
 		},
 	},
-	canarySource: {
+	"canary": {
 		arch.X86: &directSource{
-			url: "http://files.kaoriya.net/vim/vim74-kaoriya-win32-test.zip",
+			url:   "http://files.kaoriya.net/vim/vim74-kaoriya-win32-test.zip",
+			strip: 1,
 		},
 		arch.AMD64: &directSource{
-			url: "http://files.kaoriya.net/vim/vim74-kaoriya-win64-test.zip",
+			url:   "http://files.kaoriya.net/vim/vim74-kaoriya-win64-test.zip",
+			strip: 1,
+		},
+	},
+	"vim.org": {
+		arch.X86: &githubSource{
+			user:    "vim",
+			project: "vim-win32-installer",
+			namePat: regexp.MustCompile(`_x86\.zip$`),
+			strip:   2,
+		},
+		arch.AMD64: &githubSource{
+			user:    "vim",
+			project: "vim-win32-installer",
+			namePat: regexp.MustCompile(`_x64\.zip$`),
+			strip:   2,
 		},
 	},
 }
 
-func determineSource(st sourceType, cpu arch.CPU) (source, error) {
-	m, ok := sources[st]
+func determineSource(sourceType string, cpu arch.CPU) (source, error) {
+	m, ok := sources[sourceType]
 	if !ok {
 		return nil, errSourceNotFound
 	}

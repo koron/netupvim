@@ -66,6 +66,14 @@ source = "develop"
 source = "canary"
 ```
 
+同様に、<https://github.com/vim/vim-win32-installer> で配布されている本家の最新
+のVimを利用できます。設定ファイルに以下の記述をしてください。
+
+```ini
+# vim/vim-win32-installer 版
+source = "vim.org"
+```
+
 これらの版はあくまでも開発・実験用であり、予告なく不安定な動作の Vim が配信され
 る可能性があることに留意してください。
 

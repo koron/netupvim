@@ -12,7 +12,7 @@ import (
 
 type context struct {
 	cpu       arch.CPU
-	source    sourceType
+	source    string
 	targetDir string
 	dataDir   string
 	logDir    string
@@ -27,13 +27,9 @@ func newContext(dir, src string) (*context, error) {
 		return nil, err
 	}
 	dataDir := filepath.Join(dir, "netupvim")
-	st, err := toSourceType(src)
-	if err != nil {
-		return nil, err
-	}
 	return &context{
 		cpu:       cpu,
-		source:    st,
+		source:    src,
 		targetDir: dir,
 		dataDir:   dataDir,
 		logDir:    filepath.Join(dataDir, "log"),

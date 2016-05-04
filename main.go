@@ -51,7 +51,7 @@ func cleanFiles(dir string, prev, curr fileInfoTable) {
 	}
 }
 
-func extract(dir, zipName, recipeName string) error {
+func extract(zipName, dir string, stripCount int, recipeName string) error {
 	prev, err := loadFileInfo(recipeName)
 	if err != nil {
 		logLoadRecipeFailed(err)
@@ -60,7 +60,7 @@ func extract(dir, zipName, recipeName string) error {
 	logInfo("extract archive: %s", zipName)
 	msgPrintf("extract archive\n")
 	last := -1
-	curr, err := extractZip(zipName, dir, 1, prev, func(curr, max uint64) {
+	curr, err := extractZip(zipName, dir, stripCount, prev, func(curr, max uint64) {
 		v := int(curr * 100 / max)
 		if v != last {
 			msgPrintProgress(v)
@@ -84,13 +84,13 @@ func update(c *context) error {
 	if err != nil {
 		return err
 	}
-	s, err := determineSource(c.source, c.cpu)
+	src, err := determineSource(c.source, c.cpu)
 	if err != nil {
 		return err
 	}
-	logInfo("determined source: %s", s.String())
+	logInfo("determined source: %s", src.String())
 	last := -1
-	p, err := s.download(c.tmpDir, t, func(curr, max int64) {
+	p, err := src.download(c.tmpDir, t, func(curr, max int64) {
 		v := int(curr * 100 / max)
 		if v != last {
 			msgPrintProgress(v)
@@ -108,7 +108,7 @@ func update(c *context) error {
 	logInfo("download completed successfully")
 	// capture anchor's new value.
 	t = time.Now()
-	if err := extract(c.targetDir, p, c.recipePath()); err != nil {
+	if err := extract(p, c.targetDir, src.stripCount(), c.recipePath()); err != nil {
 		return err
 	}
 	if err := c.updateAnchor(t); err != nil {
@@ -206,9 +206,7 @@ func main() {
 		logFatal(err)
 	}
 	logSetup(c.logDir, logRotateCount)
-	logInfo("context: CPU=%s source=%s dir=%s",
-		c.cpu.String(), c.source.String(), c.targetDir)
-	github.DefaultClient.Logger = logger
+	logInfo("context: CPU=%s source=%s dir=%s", c.cpu.String(), c.source, c.targetDir)
 
 	// Run update.
 	proc := update
