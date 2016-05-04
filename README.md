@@ -45,17 +45,14 @@ Vim をインストールしていない状態で更新を実行すると、イ�
 
 ## エキスパート向け情報
 
-### 実行回数制限
+### 設定ファイル
 
-netupvim は GitHub API の回数制限の影響を受けます。そのため短時間に何度も実行す
-ると(1時間に50回程度以上の頻度で)、更新チェックに失敗するようになります。制限時
-にはIPアドレス単位での制限となるため、ルーターを通して複数のコンピューターが接
-続されている場合には、一括で制限を受けるため注意してください。
+netupvim は、実行時のカレントディレクトリにある設定ファイル netupvim.ini を起動
+時に読み込みます。
 
 ### 開発版の利用
 
-開発版を利用したい場合には、netupvim.exe と同じ場所に netupvim.ini という名前の
-ファイルを置き、以下の内容を記述してください。
+開発版を利用したい場合には設定ファイルに以下のような内容を記述してください。
 
 ```ini
 # 開発版
@@ -72,6 +69,27 @@ source = "canary"
 これらの版はあくまでも開発・実験用であり、予告なく不安定な動作の Vim が配信され
 る可能性があることに留意してください。
 
+### 実行回数制限
+
+netupvim は GitHub API の回数制限の影響を受けます。そのため短時間に何度も実行す
+ると(1時間に50回)、更新チェックに失敗するようになります。IPアドレス単位での制限
+となるため、ルーターを通して複数のコンピューターが接続している場合には、一括で
+制限を受けることに注意してください。
+
+この制限を緩和するには GitHub のユーザーとトークンを準備し、netupvim へ設定して
+ください。ユーザーとトークンを用いることで、制限回数は1時間あたり5000回に拡張さ
+れます。設定には、設定ファイルの `github_user` と `github_token`、もしくは環境
+変数の `NETUPVIM_GITHUB_USER` と `NETUPVIM_GITHUB_TOKEN` を使ってください。設定
+ファイルと環境変数の両方を設定した場合には、設定ファイルのものが優先されます。
+以下は netupvim.ini の設定例です。
+
+```ini
+github_user = "koron"
+github_token = "0123456789abcdef0123456789abcdef'
+```
+
+FIXME: トークンの作成・取得方法を解説する
+
 ---
 
 # English
@@ -83,7 +101,8 @@ Windows.
 
 ### Setup
 
-Unarchive a downloaded archive file, then copy below three files into your folder where you install Vim (or you are going to install).
+Unarchive a downloaded archive file, then copy below three files into your
+folder where you install Vim (or you are going to install).
 
 *   netupvim.exe
 *   UPDATE.bat

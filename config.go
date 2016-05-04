@@ -19,6 +19,12 @@ type Config struct {
 
 	// CPU is target CPU architecture: "x86" or "amd64"
 	CPU string `toml:"cpu"`
+
+	// GithubUser is username which be used for github's basic auth.
+	GithubUser string `toml:"github_user"`
+
+	// GithubUser is token which be used for github's basic auth.
+	GithubToken string `toml:"github_token"`
 }
 
 func loadConfig(name string) (*Config, error) {

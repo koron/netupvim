@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/koron/go-arch"
+	"github.com/koron/go-github"
 )
 
 const logRotateCount = 5
@@ -142,6 +143,14 @@ Options are:
 }
 
 func main() {
+	// Fetch environment variables.
+	var (
+		githubUser  string
+		githubToken string
+	)
+	githubUser, _ = os.LookupEnv("NETUPVIM_GITHUB_USER")
+	githubToken, _ = os.LookupEnv("NETUPVIM_GITHUB_TOKEN")
+
 	// Load config.
 	conf, err := loadConfig("netupvim.ini")
 	if err != nil {
@@ -161,6 +170,13 @@ func main() {
 	if conf.CPU != "" {
 		cpu = arch.ParseCPU(conf.CPU)
 	}
+	if conf.GithubUser != "" {
+		githubUser = conf.GithubUser
+	}
+	if conf.GithubToken != "" {
+		githubToken = conf.GithubToken
+	}
+
 	// Parse options.
 	var (
 		helpOpt    = flag.Bool("h", false, "show this message")
@@ -174,7 +190,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Run update.
+	// Setup context and other components.
 	c, err := newContext(*targetOpt, *sourceOpt)
 	if err != nil {
 		logFatal(err)
@@ -182,12 +198,19 @@ func main() {
 	if cpu != 0 {
 		c.cpu = cpu
 	}
+	if githubUser != "" && githubToken != "" {
+		github.DefaultClient.Username = githubUser
+		github.DefaultClient.Token = githubToken
+	}
 	if err := c.prepare(); err != nil {
 		logFatal(err)
 	}
 	logSetup(c.logDir, logRotateCount)
 	logInfo("context: CPU=%s source=%s dir=%s",
 		c.cpu.String(), c.source.String(), c.targetDir)
+	github.DefaultClient.Logger = logger
+
+	// Run update.
 	proc := update
 	if *restoreOpt {
 		proc = restore
