@@ -7,19 +7,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/koron/go-arch"
 	"github.com/koron/go-github"
 )
 
 const logRotateCount = 5
-
-func mustGetwd() string {
-	d, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-	return d
-}
 
 func saveFileInfo(fname string, t fileInfoTable) error {
 	f, err := os.Create(fname)
@@ -143,45 +134,18 @@ Options are:
 }
 
 func main() {
-	// Fetch environment variables.
-	var (
-		githubUser  string
-		githubToken string
-	)
-	githubUser, _ = os.LookupEnv("NETUPVIM_GITHUB_USER")
-	githubToken, _ = os.LookupEnv("NETUPVIM_GITHUB_TOKEN")
-
 	// Load config.
 	conf, err := loadConfig("netupvim.ini")
 	if err != nil {
 		logFatal(err)
 	}
 	var (
-		defaultSource = "release"
-		defaultTarget = mustGetwd()
-		cpu           arch.CPU
+		defaultSource = conf.getSource()
+		defaultTarget = conf.getTargetDir()
+		githubUser    = conf.getGithubUser()
+		githubToken   = conf.getGithubToken()
 	)
-	if conf.Source != "" {
-		defaultSource = conf.Source
-	}
-	if conf.TargetDir != "" {
-		defaultTarget = conf.TargetDir
-	}
-	if conf.CPU != "" {
-		cpu = arch.ParseCPU(conf.CPU)
-	}
-	if conf.GithubUser != "" {
-		githubUser = conf.GithubUser
-	}
-	if conf.GithubToken != "" {
-		githubToken = conf.GithubToken
-	}
-	if conf.DownloadTimeout != "" {
-		downloadTimeout, err = time.ParseDuration(conf.DownloadTimeout)
-		if err != nil {
-			logFatal(err)
-		}
-	}
+	downloadTimeout = conf.getDownloadTimeout()
 
 	// Parse options.
 	var (
@@ -201,7 +165,7 @@ func main() {
 	if err != nil {
 		logFatal(err)
 	}
-	if cpu != 0 {
+	if cpu := conf.getCPU(); cpu != 0 {
 		c.cpu = cpu
 	}
 	if githubUser != "" && githubToken != "" {

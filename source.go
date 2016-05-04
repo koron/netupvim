@@ -193,6 +193,7 @@ func downloadAsFile(inURL, outPath string, pivot time.Time, pf progressFunc) err
 		req.Header.Set("If-Modified-Since", t)
 	}
 	logInfo("download URL %s as file %s", inURL, outPath)
+	msgPrintf("download %s\n", inURL)
 	client := http.Client{Timeout: downloadTimeout}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -202,7 +203,6 @@ func downloadAsFile(inURL, outPath string, pivot time.Time, pf progressFunc) err
 
 	switch resp.StatusCode {
 	case http.StatusOK:
-		msgPrintf("download %s\n", inURL)
 		return saveBody(outPath, resp, pf)
 	case http.StatusNotModified:
 		return errSourceNotModified

@@ -2,8 +2,10 @@ package main
 
 import (
 	"os"
+	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/koron/go-arch"
 )
 
 // Config represents netupvim's configuration.
@@ -40,4 +42,53 @@ func loadConfig(name string) (*Config, error) {
 		return nil, err
 	}
 	return &conf, nil
+}
+
+func (c *Config) getSource() string {
+	if c.Source != "" {
+		return c.Source
+	}
+	return "release"
+}
+
+func (c *Config) getTargetDir() string {
+	if c.TargetDir != "" {
+		return c.TargetDir
+	}
+	dir, err := os.Getwd()
+	if err != nil {
+		logFatal(err)
+	}
+	return dir
+}
+
+func (c *Config) getCPU() arch.CPU {
+	return arch.ParseCPU(c.CPU)
+}
+
+func (c *Config) getGithubUser() string {
+	if c.GithubUser != "" {
+		return c.GithubUser
+	}
+	v, _ := os.LookupEnv("NETUPVIM_GITHUB_USER")
+	return v
+}
+
+func (c *Config) getGithubToken() string {
+	if c.GithubToken != "" {
+		return c.GithubToken
+	}
+	v, _ := os.LookupEnv("NETUPVIM_GITHUB_TOKEN")
+	return v
+}
+
+func (c *Config) getDownloadTimeout() time.Duration {
+	if c.DownloadTimeout == "" {
+		return 5 * time.Minute
+	}
+	t, err := time.ParseDuration(c.DownloadTimeout)
+	if err != nil {
+		logFatal(err)
+	}
+	return t
 }
