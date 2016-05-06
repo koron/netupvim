@@ -133,9 +133,9 @@ Options are:
 	flag.PrintDefaults()
 }
 
-func run(sources sourceSet) error {
+func run(confname string, sources sourceSet) error {
 	// Load config.
-	conf, err := loadConfig("netupvim.ini")
+	conf, err := loadConfig(confname)
 	if err != nil {
 		return err
 	}

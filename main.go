@@ -58,7 +58,7 @@ var sources = sourceSet{
 }
 
 func main() {
-	err := run(sources)
+	err := run("netupvim.ini", sources)
 	if err != nil {
 		logFatal(err)
 	}
