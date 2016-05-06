@@ -26,6 +26,7 @@ var (
 
 type progressFunc func(curr, max int64)
 
+// Source describes source of update.
 type Source interface {
 	// download downloads source file to outdir, return its path name.
 	// if pivot is not zero, this checks changes of source from pivot.
@@ -37,6 +38,7 @@ type Source interface {
 	String() string
 }
 
+// DirectSource represents direct ZIP source.
 type DirectSource struct {
 	URL   string
 	Strip int
@@ -56,6 +58,7 @@ func (ds *DirectSource) String() string {
 	return fmt.Sprintf("direct: URL=%s", ds.URL)
 }
 
+// GithubSource represents project source on GitHub.
 type GithubSource struct {
 	User    string
 	Project string
@@ -189,7 +192,7 @@ func (w *progressWriter) Write(p []byte) (int, error) {
 	return n, err
 }
 
-// sourceSet is set of source.
+// SourceSet is set of source.
 type SourceSet map[string]map[arch.CPU]Source
 
 // Find finds a source for type and CPU.
