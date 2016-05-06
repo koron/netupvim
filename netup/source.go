@@ -1,4 +1,4 @@
-package main
+package netup
 
 import (
 	"errors"
@@ -26,7 +26,7 @@ var (
 
 type progressFunc func(curr, max int64)
 
-type source interface {
+type Source interface {
 	// download downloads source file to outdir, return its path name.
 	// if pivot is not zero, this checks changes of source from pivot.
 	download(outdir string, pivot time.Time, f progressFunc) (path string, err error)
@@ -37,35 +37,35 @@ type source interface {
 	String() string
 }
 
-type directSource struct {
-	url   string
-	strip int
+type DirectSource struct {
+	URL   string
+	Strip int
 }
 
-var _ source = (*directSource)(nil)
+var _ Source = (*DirectSource)(nil)
 
-func (ds *directSource) download(d string, p time.Time, f progressFunc) (string, error) {
-	return download(ds.url, d, p, f)
+func (ds *DirectSource) download(d string, p time.Time, f progressFunc) (string, error) {
+	return download(ds.URL, d, p, f)
 }
 
-func (ds *directSource) stripCount() int {
-	return ds.strip
+func (ds *DirectSource) stripCount() int {
+	return ds.Strip
 }
 
-func (ds *directSource) String() string {
-	return fmt.Sprintf("direct: URL=%s", ds.url)
+func (ds *DirectSource) String() string {
+	return fmt.Sprintf("direct: URL=%s", ds.URL)
 }
 
-type githubSource struct {
-	user    string
-	project string
-	namePat *regexp.Regexp
-	strip   int
+type GithubSource struct {
+	User    string
+	Project string
+	NamePat *regexp.Regexp
+	Strip   int
 }
 
-var _ source = (*githubSource)(nil)
+var _ Source = (*GithubSource)(nil)
 
-func (gs *githubSource) download(d string, p time.Time, f progressFunc) (string, error) {
+func (gs *GithubSource) download(d string, p time.Time, f progressFunc) (string, error) {
 	a, err := gs.fetchAsset()
 	if err != nil {
 		return "", err
@@ -77,12 +77,12 @@ func (gs *githubSource) download(d string, p time.Time, f progressFunc) (string,
 	return download(a.DownloadURL, d, p, f)
 }
 
-func (gs *githubSource) stripCount() int {
-	return gs.strip
+func (gs *GithubSource) stripCount() int {
+	return gs.Strip
 }
 
-func (gs *githubSource) fetchAsset() (*github.Asset, error) {
-	r, err := github.Latest(gs.user, gs.project)
+func (gs *GithubSource) fetchAsset() (*github.Asset, error) {
+	r, err := github.Latest(gs.User, gs.Project)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (gs *githubSource) fetchAsset() (*github.Asset, error) {
 	}
 	var t *github.Asset
 	for _, a := range r.Assets {
-		if gs.namePat.MatchString(a.Name) {
+		if gs.NamePat.MatchString(a.Name) {
 			t = &a
 			break
 		}
@@ -105,9 +105,9 @@ func (gs *githubSource) fetchAsset() (*github.Asset, error) {
 	return t, nil
 }
 
-func (gs *githubSource) String() string {
+func (gs *GithubSource) String() string {
 	return fmt.Sprintf("GitHub: %s/%s pattern=%s",
-		gs.user, gs.project, gs.namePat.String())
+		gs.User, gs.Project, gs.NamePat.String())
 }
 
 func downloadFilepath(inURL, outdir string) (string, error) {
@@ -190,10 +190,10 @@ func (w *progressWriter) Write(p []byte) (int, error) {
 }
 
 // sourceSet is set of source.
-type sourceSet map[string]map[arch.CPU]source
+type SourceSet map[string]map[arch.CPU]Source
 
 // Find finds a source for type and CPU.
-func (ss sourceSet) Find(sourceType string, cpu arch.CPU) (source, error) {
+func (ss SourceSet) Find(sourceType string, cpu arch.CPU) (Source, error) {
 	m, ok := ss[sourceType]
 	if !ok {
 		return nil, errSourceNotFound

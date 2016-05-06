@@ -1,4 +1,4 @@
-package main
+package netup
 
 import (
 	"fmt"
@@ -89,4 +89,9 @@ func logSetup(dir string, count int) {
 		logFatal(err)
 	}
 	logger = log.New(f, "", log.LstdFlags|log.Lmicroseconds)
+}
+
+// LogFatal records a message to UI and logger file then os.Exit(1)
+func LogFatal(err error) {
+	logFatal(err)
 }

@@ -1,4 +1,4 @@
-package main
+package netup
 
 import (
 	"flag"
@@ -70,7 +70,7 @@ func extract(zipName, dir string, stripCount int, recipeName string) error {
 	return nil
 }
 
-func update(c *context, sources sourceSet) error {
+func update(c *context, sources SourceSet) error {
 	t, err := c.anchor()
 	if err != nil {
 		return err
@@ -112,7 +112,7 @@ func update(c *context, sources sourceSet) error {
 	return nil
 }
 
-func restore(c *context, sources sourceSet) error {
+func restore(c *context, sources SourceSet) error {
 	if err := os.Remove(c.anchorPath()); os.IsExist(err) {
 		return err
 	}
@@ -133,7 +133,8 @@ Options are:
 	flag.PrintDefaults()
 }
 
-func run(confname string, sources sourceSet) error {
+// Run runs update procedure.
+func Run(confname string, sources SourceSet) error {
 	// Load config.
 	conf, err := loadConfig(confname)
 	if err != nil {
