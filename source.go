@@ -110,69 +110,6 @@ func (gs *githubSource) String() string {
 		gs.user, gs.project, gs.namePat.String())
 }
 
-var sources = map[string]map[arch.CPU]source{
-	"release": {
-		arch.X86: &githubSource{
-			user:    "koron",
-			project: "vim-kaoriya",
-			namePat: regexp.MustCompile(`-win32-.*\.zip$`),
-			strip:   1,
-		},
-		arch.AMD64: &githubSource{
-			user:    "koron",
-			project: "vim-kaoriya",
-			namePat: regexp.MustCompile(`-win64-.*\.zip$`),
-			strip:   1,
-		},
-	},
-	"develop": {
-		arch.X86: &directSource{
-			url:   "http://files.kaoriya.net/vim/vim74-kaoriya-win32.zip",
-			strip: 1,
-		},
-		arch.AMD64: &directSource{
-			url:   "http://files.kaoriya.net/vim/vim74-kaoriya-win64.zip",
-			strip: 1,
-		},
-	},
-	"canary": {
-		arch.X86: &directSource{
-			url:   "http://files.kaoriya.net/vim/vim74-kaoriya-win32-test.zip",
-			strip: 1,
-		},
-		arch.AMD64: &directSource{
-			url:   "http://files.kaoriya.net/vim/vim74-kaoriya-win64-test.zip",
-			strip: 1,
-		},
-	},
-	"vim.org": {
-		arch.X86: &githubSource{
-			user:    "vim",
-			project: "vim-win32-installer",
-			namePat: regexp.MustCompile(`_x86\.zip$`),
-			strip:   2,
-		},
-		arch.AMD64: &githubSource{
-			user:    "vim",
-			project: "vim-win32-installer",
-			namePat: regexp.MustCompile(`_x64\.zip$`),
-			strip:   2,
-		},
-	},
-}
-
-func determineSource(sourceType string, cpu arch.CPU) (source, error) {
-	m, ok := sources[sourceType]
-	if !ok {
-		return nil, errSourceNotFound
-	}
-	s, ok := m[cpu]
-	if !ok {
-		return nil, errSourceNotFound
-	}
-	return s, nil
-}
-
 func downloadFilepath(inURL, outdir string) (string, error) {
 	u, err := url.Parse(inURL)
 	if err != nil {
@@ -250,4 +187,20 @@ func (w *progressWriter) Write(p []byte) (int, error) {
 		w.f(w.n, w.m)
 	}
 	return n, err
+}
+
+// sourceSet is set of source.
+type sourceSet map[string]map[arch.CPU]source
+
+// Find finds a source for type and CPU.
+func (ss sourceSet) Find(sourceType string, cpu arch.CPU) (source, error) {
+	m, ok := ss[sourceType]
+	if !ok {
+		return nil, errSourceNotFound
+	}
+	s, ok := m[cpu]
+	if !ok {
+		return nil, errSourceNotFound
+	}
+	return s, nil
 }
