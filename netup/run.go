@@ -71,15 +71,15 @@ func extract(zipName, dir string, stripCount int, recipeName string) error {
 }
 
 func update(c *context, sources SourceSet) error {
-	t, err := c.anchor()
-	if err != nil {
-		return err
-	}
 	src, err := sources.find(c.source, c.cpu)
 	if err != nil {
 		return err
 	}
 	logInfo("determined source: %s", src.String())
+	t, err := c.anchor()
+	if err != nil {
+		return err
+	}
 	last := -1
 	p, err := src.download(c.tmpDir, t, func(curr, max int64) {
 		v := int(curr * 100 / max)
@@ -103,7 +103,7 @@ func update(c *context, sources SourceSet) error {
 		return err
 	}
 	if err := c.updateAnchor(t); err != nil {
-		os.Remove(c.anchorPath())
+		c.resetAnchor()
 		return err
 	}
 	if err := os.Remove(p); err != nil {
@@ -113,10 +113,10 @@ func update(c *context, sources SourceSet) error {
 }
 
 func restore(c *context, sources SourceSet) error {
-	if err := os.Remove(c.anchorPath()); os.IsExist(err) {
+	if err := c.resetAnchor(); err != nil {
 		return err
 	}
-	if err := os.Remove(c.recipePath()); os.IsExist(err) {
+	if err := c.resetRecipe(); err != nil {
 		return err
 	}
 	logInfo("deleted anchor and recipe to restore")
@@ -134,9 +134,9 @@ Options are:
 }
 
 // Run runs update procedure.
-func Run(confname string, sources SourceSet) error {
+func Run(name, target string, sources SourceSet) error {
 	// Load config.
-	conf, err := loadConfig(confname)
+	conf, err := loadConfig(name + ".ini")
 	if err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func Run(confname string, sources SourceSet) error {
 	}
 
 	// Setup context and other components.
-	c, err := newContext(*targetOpt, *sourceOpt)
+	c, err := newContext(*targetOpt, *sourceOpt, name, target)
 	if err != nil {
 		return err
 	}
@@ -177,6 +177,8 @@ func Run(confname string, sources SourceSet) error {
 		return err
 	}
 	logSetup(c.logDir, logRotateCount)
+	// should be enabled for debug purpose.
+	//github.DefaultClient.Logger = logger
 	logInfo("context: CPU=%s source=%s dir=%s", c.cpu.String(), c.source, c.targetDir)
 
 	// Run update.

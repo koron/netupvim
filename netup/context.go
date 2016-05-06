@@ -20,13 +20,12 @@ type context struct {
 	varDir    string
 }
 
-func newContext(dir, src string) (*context, error) {
-	exe := filepath.Join(dir, "vim.exe")
-	cpu, err := arch.Exe(exe)
+func newContext(dir, src, name, exe string) (*context, error) {
+	cpu, err := arch.Exe(filepath.Join(dir, exe))
 	if err != nil {
 		return nil, err
 	}
-	dataDir := filepath.Join(dir, "netupvim")
+	dataDir := filepath.Join(dir, name)
 	return &context{
 		cpu:       cpu,
 		source:    src,
@@ -38,17 +37,6 @@ func newContext(dir, src string) (*context, error) {
 	}, nil
 }
 
-func (c *context) name() string {
-	switch c.cpu {
-	case arch.X86:
-		return "vim74-win32"
-	case arch.AMD64:
-		return "vim74-win64"
-	default:
-		return ""
-	}
-}
-
 func (c *context) downloadPath(targetURL string) (string, error) {
 	u, err := url.Parse(targetURL)
 	if err != nil {
@@ -58,11 +46,11 @@ func (c *context) downloadPath(targetURL string) (string, error) {
 }
 
 func (c *context) recipePath() string {
-	return filepath.Join(c.varDir, c.name()+"-recipe.txt")
+	return filepath.Join(c.varDir, "recipe.txt")
 }
 
 func (c *context) anchorPath() string {
-	return filepath.Join(c.varDir, c.name()+"-anchor.txt")
+	return filepath.Join(c.varDir, "anchor.txt")
 }
 
 func (c *context) anchor() (time.Time, error) {
@@ -88,6 +76,20 @@ func (c *context) updateAnchor(t time.Time) error {
 		return err
 	}
 	return f.Sync()
+}
+
+func (c *context) resetAnchor() error {
+	if err := os.Remove(c.anchorPath()); os.IsExist(err) {
+		return err
+	}
+	return nil
+}
+
+func (c *context) resetRecipe() error {
+	if err := os.Remove(c.recipePath()); os.IsExist(err) {
+		return err
+	}
+	return nil
 }
 
 func (c *context) dirs() []string {

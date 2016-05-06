@@ -59,7 +59,7 @@ var sources = netup.SourceSet{
 }
 
 func main() {
-	err := netup.Run("netupvim.ini", sources)
+	err := netup.Run("netupvim", "vim.exe", sources)
 	if err != nil {
 		netup.LogFatal(err)
 	}
