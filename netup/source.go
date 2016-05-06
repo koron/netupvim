@@ -195,8 +195,8 @@ func (w *progressWriter) Write(p []byte) (int, error) {
 // SourceSet is set of source.
 type SourceSet map[string]map[arch.CPU]Source
 
-// Find finds a source for type and CPU.
-func (ss SourceSet) Find(sourceType string, cpu arch.CPU) (Source, error) {
+// find finds a source for type and CPU.
+func (ss SourceSet) find(sourceType string, cpu arch.CPU) (Source, error) {
 	m, ok := ss[sourceType]
 	if !ok {
 		return nil, errSourceNotFound

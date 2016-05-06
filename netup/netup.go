@@ -75,7 +75,7 @@ func update(c *context, sources SourceSet) error {
 	if err != nil {
 		return err
 	}
-	src, err := sources.Find(c.source, c.cpu)
+	src, err := sources.find(c.source, c.cpu)
 	if err != nil {
 		return err
 	}

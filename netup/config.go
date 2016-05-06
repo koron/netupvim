@@ -8,7 +8,7 @@ import (
 	"github.com/koron/go-arch"
 )
 
-// Config represents netupvim's configuration.
+// Config represents netup's configuration.
 type Config struct {
 
 	// Source is source of update: release, develop and canary.
