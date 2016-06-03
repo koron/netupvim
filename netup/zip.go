@@ -61,6 +61,8 @@ func newZipFileProc(dir string, stripCount int, prev, curr fileInfoTable) func(z
 		if err := extractZipFile(zf, outName); err != nil {
 			return false, err
 		}
+		t := zf.ModTime()
+		os.Chtimes(outName, t, t)
 		return true, nil
 	}
 }
