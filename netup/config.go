@@ -25,7 +25,7 @@ type Config struct {
 	// GithubUser is username which be used for github's basic auth.
 	GithubUser string `toml:"github_user"`
 
-	// GithubUser is token which be used for github's basic auth.
+	// GithubToken is token which be used for github's basic auth.
 	GithubToken string `toml:"github_token"`
 
 	// DownloadTimeout is timeout for downloading archive (default: "5min")
