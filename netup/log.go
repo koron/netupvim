@@ -12,7 +12,7 @@ import (
 var (
 	logger  = log.New(ioutil.Discard, "", 0)
 	logDir  string
-	logFile *os.File = nil
+	logFile *os.File
 )
 
 // logInfo records a message to logger file.

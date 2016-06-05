@@ -52,22 +52,29 @@ func run() error {
 	if err := setup(); err != nil {
 		return err
 	}
-	pack, ok := vimSet[sourceName]
+	// update vim
+	vimPack, ok := vimSet[sourceName]
 	if !ok {
 		return fmt.Errorf("invalid source: %s", sourceName)
 	}
-	workDir := filepath.Join(targetDir, "netupvim")
-	// update vim
-	err := netup.Update(targetDir, workDir, pack,
-		netup.Arch{Name: cpu, Hint: "vim.exe"}, restore)
+	err := netup.Update(
+		targetDir,
+		filepath.Join(targetDir, "netupvim"),
+		vimPack,
+		netup.Arch{Name: cpu, Hint: "vim.exe"},
+		restore)
 	if err != nil {
 		return err
 	}
 	// try to update netupvim
 	if _, err := os.Stat(filepath.Join(targetDir, "netupvim.exe")); err == nil {
 		netup.LogInfo("trying to update netupvim")
-		err := netup.Update(targetDir, workDir, netupPack,
-			netup.Arch{Name: "X86"}, restore)
+		err := netup.Update(
+			targetDir,
+			filepath.Join(targetDir, "netupvim-self"),
+			netupPack,
+			netup.Arch{Name: "X86"},
+			restore)
 		if err != nil {
 			netup.LogInfo("failed to udate netupvim: %s", err)
 		}
