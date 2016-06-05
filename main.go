@@ -52,6 +52,7 @@ func run() error {
 	if err := setup(); err != nil {
 		return err
 	}
+	workDir := filepath.Join(targetDir, "netupvim")
 	// update vim
 	vimPack, ok := vimSet[sourceName]
 	if !ok {
@@ -59,7 +60,7 @@ func run() error {
 	}
 	err := netup.Update(
 		targetDir,
-		filepath.Join(targetDir, "netupvim"),
+		workDir,
 		vimPack,
 		netup.Arch{Name: cpu, Hint: "vim.exe"},
 		restore)
@@ -71,7 +72,7 @@ func run() error {
 		netup.LogInfo("trying to update netupvim")
 		err := netup.Update(
 			targetDir,
-			filepath.Join(targetDir, "netupvim-self"),
+			workDir,
 			netupPack,
 			netup.Arch{Name: "X86"},
 			restore)

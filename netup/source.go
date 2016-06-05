@@ -33,12 +33,15 @@ type Source interface {
 
 	stripCount() int
 
+	name() string
+
 	// String returns a string to represent source.
 	String() string
 }
 
 // DirectSource represents direct ZIP source.
 type DirectSource struct {
+	Name  string
 	URL   string
 	Strip int
 }
@@ -53,12 +56,17 @@ func (ds *DirectSource) stripCount() int {
 	return ds.Strip
 }
 
+func (ds *DirectSource) name() string {
+	return ds.Name
+}
+
 func (ds *DirectSource) String() string {
 	return fmt.Sprintf("direct: URL=%s", ds.URL)
 }
 
 // GithubSource represents project source on GitHub.
 type GithubSource struct {
+	Name    string
 	User    string
 	Project string
 	NamePat *regexp.Regexp
@@ -81,6 +89,10 @@ func (gs *GithubSource) download(d string, p time.Time, f progressFunc) (string,
 
 func (gs *GithubSource) stripCount() int {
 	return gs.Strip
+}
+
+func (gs *GithubSource) name() string {
+	return gs.Name
 }
 
 func (gs *GithubSource) fetchAsset() (*github.Asset, error) {

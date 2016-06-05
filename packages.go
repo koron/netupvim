@@ -10,12 +10,14 @@ import (
 var vimSet = map[string]netup.SourcePack{
 	"release": {
 		arch.X86: &netup.GithubSource{
+			Name:    "vim",
 			User:    "koron",
 			Project: "vim-kaoriya",
 			NamePat: regexp.MustCompile(`-win32-.*\.zip$`),
 			Strip:   1,
 		},
 		arch.AMD64: &netup.GithubSource{
+			Name:    "vim",
 			User:    "koron",
 			Project: "vim-kaoriya",
 			NamePat: regexp.MustCompile(`-win64-.*\.zip$`),
@@ -24,32 +26,38 @@ var vimSet = map[string]netup.SourcePack{
 	},
 	"develop": {
 		arch.X86: &netup.DirectSource{
+			Name:  "vim",
 			URL:   "http://files.kaoriya.net/vim/vim74-kaoriya-win32.zip",
 			Strip: 1,
 		},
 		arch.AMD64: &netup.DirectSource{
+			Name:  "vim",
 			URL:   "http://files.kaoriya.net/vim/vim74-kaoriya-win64.zip",
 			Strip: 1,
 		},
 	},
 	"canary": {
 		arch.X86: &netup.DirectSource{
+			Name:  "vim",
 			URL:   "http://files.kaoriya.net/vim/vim74-kaoriya-win32-test.zip",
 			Strip: 1,
 		},
 		arch.AMD64: &netup.DirectSource{
+			Name:  "vim",
 			URL:   "http://files.kaoriya.net/vim/vim74-kaoriya-win64-test.zip",
 			Strip: 1,
 		},
 	},
 	"vim.org": {
 		arch.X86: &netup.GithubSource{
+			Name:    "vim",
 			User:    "vim",
 			Project: "vim-win32-installer",
 			NamePat: regexp.MustCompile(`_x86\.zip$`),
 			Strip:   2,
 		},
 		arch.AMD64: &netup.GithubSource{
+			Name:    "vim",
 			User:    "vim",
 			Project: "vim-win32-installer",
 			NamePat: regexp.MustCompile(`_x64\.zip$`),
@@ -60,6 +68,7 @@ var vimSet = map[string]netup.SourcePack{
 
 var netupPack = netup.SourcePack{
 	arch.X86: &netup.GithubSource{
+		Name:    "netup",
 		User:    "koron",
 		Project: "netupvim",
 		NamePat: regexp.MustCompile(`^netupvim-.*\.zip$`),

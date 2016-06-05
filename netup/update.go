@@ -49,7 +49,7 @@ func Update(targetDir, workDir string, srcPack SourcePack, arch Arch, restoreFla
 		dataDir:   workDir,
 		logDir:    filepath.Join(workDir, "log"),
 		tmpDir:    filepath.Join(workDir, "tmp"),
-		varDir:    filepath.Join(workDir, "var"),
+		varDir:    filepath.Join(workDir, "var", src.name()),
 		source:    src,
 	}
 	if err := ctx.mkdirAll(); err != nil {
