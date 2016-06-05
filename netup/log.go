@@ -9,7 +9,11 @@ import (
 	"time"
 )
 
-var logger = log.New(ioutil.Discard, "", 0)
+var (
+	logger  = log.New(ioutil.Discard, "", 0)
+	logDir  string
+	logFile *os.File = nil
+)
 
 // logInfo records a message to logger file.
 func logInfo(format string, v ...interface{}) {
@@ -72,6 +76,9 @@ func logFiles(dir string) ([]os.FileInfo, error) {
 }
 
 func logSetup(dir string, count int) {
+	if logFile != nil && logDir == dir {
+		return
+	}
 	// remove old log files.
 	logs, err := logFiles(dir)
 	if len(logs) >= count {
@@ -88,7 +95,16 @@ func logSetup(dir string, count int) {
 	if err != nil {
 		logFatal(err)
 	}
+	if logFile != nil {
+		logFile.Close()
+	}
+	logDir, logFile = dir, f
 	logger = log.New(f, "", log.LstdFlags|log.Lmicroseconds)
+}
+
+// LogInfo records a message to logger file.
+func LogInfo(format string, v ...interface{}) {
+	logInfo(format, v...)
 }
 
 // LogFatal records a message to UI and logger file then os.Exit(1)

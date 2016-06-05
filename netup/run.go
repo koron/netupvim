@@ -1,16 +1,11 @@
 package netup
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 	"time"
-
-	"github.com/koron/go-github"
 )
-
-const logRotateCount = 5
 
 func saveFileInfo(fname string, t fileInfoTable) error {
 	f, err := os.Create(fname)
@@ -70,11 +65,8 @@ func extract(zipName, dir string, stripCount int, recipeName string) error {
 	return nil
 }
 
-func update(c *context, sources SourceSet) error {
-	src, err := sources.find(c.source, c.cpu)
-	if err != nil {
-		return err
-	}
+func update(c *context) error {
+	src := c.source
 	logInfo("determined source: %s", src.String())
 	t, err := c.anchor()
 	if err != nil {
@@ -112,7 +104,7 @@ func update(c *context, sources SourceSet) error {
 	return nil
 }
 
-func restore(c *context, sources SourceSet) error {
+func restore(c *context) error {
 	if err := c.resetAnchor(); err != nil {
 		return err
 	}
@@ -120,74 +112,5 @@ func restore(c *context, sources SourceSet) error {
 		return err
 	}
 	logInfo("deleted anchor and recipe to restore")
-	return update(c, sources)
-}
-
-func showHelp() {
-	fmt.Fprintf(os.Stderr, `%[1]s is tool to upgrade/install Vim (+kaoriya) in/to target dir.
-
-Usage: %[1]s [options]
-
-Options are:
-`, filepath.Base(os.Args[0]))
-	flag.PrintDefaults()
-}
-
-// Run runs update procedure.
-func Run(name, target string, sources SourceSet) error {
-	// Load config.
-	conf, err := loadConfig(name + ".ini")
-	if err != nil {
-		return err
-	}
-	var (
-		defaultSource = conf.getSource()
-		defaultTarget = conf.getTargetDir()
-		githubUser    = conf.getGithubUser()
-		githubToken   = conf.getGithubToken()
-	)
-	downloadTimeout = conf.getDownloadTimeout()
-
-	// Parse options.
-	var (
-		helpOpt    = flag.Bool("h", false, "show this message")
-		targetOpt  = flag.String("t", defaultTarget, "target dir to upgrade/install")
-		sourceOpt  = flag.String("s", defaultSource, "source of update: release,develop,canary")
-		restoreOpt = flag.Bool("restore", false, "force download & extract all files")
-	)
-	flag.Parse()
-	if *helpOpt {
-		showHelp()
-		os.Exit(1)
-	}
-
-	// Setup context and other components.
-	c, err := newContext(*targetOpt, *sourceOpt, name, target)
-	if err != nil {
-		return err
-	}
-	if cpu := conf.getCPU(); cpu != 0 {
-		c.cpu = cpu
-	}
-	if githubUser != "" && githubToken != "" {
-		github.DefaultClient.Username = githubUser
-		github.DefaultClient.Token = githubToken
-	}
-	if err := c.prepare(); err != nil {
-		return err
-	}
-	logSetup(c.logDir, logRotateCount)
-	// should be enabled for debug purpose.
-	//github.DefaultClient.Logger = logger
-	logInfo("context: CPU=%s source=%s dir=%s", c.cpu.String(), c.source, c.targetDir)
-
-	// Run update.
-	proc := update
-	if *restoreOpt {
-		proc = restore
-	}
-	if err := proc(c, sources); err != nil {
-		return err
-	}
-	return nil
+	return update(c)
 }

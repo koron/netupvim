@@ -6,35 +6,15 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-
-	"github.com/koron/go-arch"
 )
 
 type context struct {
-	cpu       arch.CPU
-	source    string
 	targetDir string
 	dataDir   string
 	logDir    string
 	tmpDir    string
 	varDir    string
-}
-
-func newContext(dir, src, name, exe string) (*context, error) {
-	cpu, err := arch.Exe(filepath.Join(dir, exe))
-	if err != nil {
-		return nil, err
-	}
-	dataDir := filepath.Join(dir, name)
-	return &context{
-		cpu:       cpu,
-		source:    src,
-		targetDir: dir,
-		dataDir:   dataDir,
-		logDir:    filepath.Join(dataDir, "log"),
-		tmpDir:    filepath.Join(dataDir, "tmp"),
-		varDir:    filepath.Join(dataDir, "var"),
-	}, nil
+	source    Source
 }
 
 func (c *context) downloadPath(targetURL string) (string, error) {
@@ -102,7 +82,7 @@ func (c *context) dirs() []string {
 	}
 }
 
-func (c *context) prepare() error {
+func (c *context) mkdirAll() error {
 	for _, dir := range c.dirs() {
 		if err := os.MkdirAll(dir, 0777); err != nil {
 			return err

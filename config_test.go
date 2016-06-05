@@ -1,4 +1,4 @@
-package netup
+package main
 
 import "testing"
 

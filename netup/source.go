@@ -16,7 +16,6 @@ import (
 )
 
 var (
-	errSourceNotFound    = errors.New("source not found")
 	errSourceNotModified = errors.New("source not modified")
 
 	errGithubNoRelease       = errors.New("absence of github release")
@@ -192,18 +191,5 @@ func (w *progressWriter) Write(p []byte) (int, error) {
 	return n, err
 }
 
-// SourceSet is set of source.
-type SourceSet map[string]map[arch.CPU]Source
-
-// find finds a source for type and CPU.
-func (ss SourceSet) find(sourceType string, cpu arch.CPU) (Source, error) {
-	m, ok := ss[sourceType]
-	if !ok {
-		return nil, errSourceNotFound
-	}
-	s, ok := m[cpu]
-	if !ok {
-		return nil, errSourceNotFound
-	}
-	return s, nil
-}
+// SourcePack is the map arch.CPU to source.
+type SourcePack map[arch.CPU]Source

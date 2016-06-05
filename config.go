@@ -1,4 +1,4 @@
-package netup
+package main
 
 import (
 	"os"
@@ -6,10 +6,11 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/koron/go-arch"
+	"github.com/koron/netupvim/netup"
 )
 
-// Config represents netup's configuration.
-type Config struct {
+// config represents netup's configuration.
+type config struct {
 
 	// Source is source of update: release, develop and canary.
 	// Default is "release"
@@ -28,45 +29,48 @@ type Config struct {
 	// GithubToken is token which be used for github's basic auth.
 	GithubToken string `toml:"github_token"`
 
+	// GithubVerbose enables log for github related operation.
+	GithubVerbose bool `toml:"github_verbose"`
+
 	// DownloadTimeout is timeout for downloading archive (default: "5min")
 	DownloadTimeout string
 }
 
-func loadConfig(name string) (*Config, error) {
-	var conf Config
+func loadConfig(name string) (*config, error) {
+	var conf config
 	_, err := toml.DecodeFile(name, &conf)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return &Config{}, nil
+			return &config{}, nil
 		}
 		return nil, err
 	}
 	return &conf, nil
 }
 
-func (c *Config) getSource() string {
+func (c *config) getSource() string {
 	if c.Source != "" {
 		return c.Source
 	}
 	return "release"
 }
 
-func (c *Config) getTargetDir() string {
+func (c *config) getTargetDir() string {
 	if c.TargetDir != "" {
 		return c.TargetDir
 	}
 	dir, err := os.Getwd()
 	if err != nil {
-		logFatal(err)
+		netup.LogFatal(err)
 	}
 	return dir
 }
 
-func (c *Config) getCPU() arch.CPU {
+func (c *config) getCPU() arch.CPU {
 	return arch.ParseCPU(c.CPU)
 }
 
-func (c *Config) getGithubUser() string {
+func (c *config) getGithubUser() string {
 	if c.GithubUser != "" {
 		return c.GithubUser
 	}
@@ -74,7 +78,7 @@ func (c *Config) getGithubUser() string {
 	return v
 }
 
-func (c *Config) getGithubToken() string {
+func (c *config) getGithubToken() string {
 	if c.GithubToken != "" {
 		return c.GithubToken
 	}
@@ -82,13 +86,13 @@ func (c *Config) getGithubToken() string {
 	return v
 }
 
-func (c *Config) getDownloadTimeout() time.Duration {
+func (c *config) getDownloadTimeout() time.Duration {
 	if c.DownloadTimeout == "" {
 		return 5 * time.Minute
 	}
 	t, err := time.ParseDuration(c.DownloadTimeout)
 	if err != nil {
-		logFatal(err)
+		netup.LogFatal(err)
 	}
 	return t
 }

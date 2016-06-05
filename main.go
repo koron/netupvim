@@ -1,66 +1,92 @@
 package main
 
 import (
-	"regexp"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
 
-	"github.com/koron/go-arch"
 	"github.com/koron/netupvim/netup"
 )
 
-var sources = netup.SourceSet{
-	"release": {
-		arch.X86: &netup.GithubSource{
-			User:    "koron",
-			Project: "vim-kaoriya",
-			NamePat: regexp.MustCompile(`-win32-.*\.zip$`),
-			Strip:   1,
-		},
-		arch.AMD64: &netup.GithubSource{
-			User:    "koron",
-			Project: "vim-kaoriya",
-			NamePat: regexp.MustCompile(`-win64-.*\.zip$`),
-			Strip:   1,
-		},
-	},
-	"develop": {
-		arch.X86: &netup.DirectSource{
-			URL:   "http://files.kaoriya.net/vim/vim74-kaoriya-win32.zip",
-			Strip: 1,
-		},
-		arch.AMD64: &netup.DirectSource{
-			URL:   "http://files.kaoriya.net/vim/vim74-kaoriya-win64.zip",
-			Strip: 1,
-		},
-	},
-	"canary": {
-		arch.X86: &netup.DirectSource{
-			URL:   "http://files.kaoriya.net/vim/vim74-kaoriya-win32-test.zip",
-			Strip: 1,
-		},
-		arch.AMD64: &netup.DirectSource{
-			URL:   "http://files.kaoriya.net/vim/vim74-kaoriya-win64-test.zip",
-			Strip: 1,
-		},
-	},
-	"vim.org": {
-		arch.X86: &netup.GithubSource{
-			User:    "vim",
-			Project: "vim-win32-installer",
-			NamePat: regexp.MustCompile(`_x86\.zip$`),
-			Strip:   2,
-		},
-		arch.AMD64: &netup.GithubSource{
-			User:    "vim",
-			Project: "vim-win32-installer",
-			NamePat: regexp.MustCompile(`_x64\.zip$`),
-			Strip:   2,
-		},
-	},
+var (
+	targetDir  = "."
+	sourceName = "release"
+	cpu        string
+	restore    bool
+)
+
+func setup() error {
+	conf, err := loadConfig("netupvim.ini")
+	if err != nil {
+		return err
+	}
+
+	// Parse options.
+	var (
+		helpOpt    = flag.Bool("h", false, "show this message")
+		targetOpt  = flag.String("t", conf.getTargetDir(), "target dir to upgrade/install")
+		sourceOpt  = flag.String("s", conf.getSource(), "source of update: release,develop,canary")
+		restoreOpt = flag.Bool("restore", false, "force download & extract all files")
+	)
+	flag.Parse()
+	if *helpOpt {
+		showHelp()
+		os.Exit(1)
+	}
+
+	// setup context.
+	targetDir = *targetOpt
+	sourceName = *sourceOpt
+	restore = *restoreOpt
+	cpu = conf.CPU
+
+	netup.DownloadTimeout = conf.getDownloadTimeout()
+	netup.GithubUser = conf.getGithubUser()
+	netup.GithubToken = conf.getGithubToken()
+
+	return nil
+}
+
+func run() error {
+	if err := setup(); err != nil {
+		return err
+	}
+	pack, ok := vimSet[sourceName]
+	if !ok {
+		return fmt.Errorf("invalid source: %s", sourceName)
+	}
+	workDir := filepath.Join(targetDir, "netupvim")
+	// update vim
+	err := netup.Update(targetDir, workDir, pack,
+		netup.Arch{Name: cpu, Hint: "vim.exe"}, restore)
+	if err != nil {
+		return err
+	}
+	// try to update netupvim
+	if _, err := os.Stat(filepath.Join(targetDir, "netupvim.exe")); err == nil {
+		netup.LogInfo("trying to update netupvim")
+		err := netup.Update(targetDir, workDir, netupPack,
+			netup.Arch{Name: "X86"}, restore)
+		if err != nil {
+			netup.LogInfo("failed to udate netupvim: %s", err)
+		}
+	}
+	return nil
+}
+
+func showHelp() {
+	fmt.Fprintf(os.Stderr, `%[1]s is tool to upgrade/install Vim (+kaoriya) in/to target dir.
+
+Usage: %[1]s [options]
+
+Options are:
+`, filepath.Base(os.Args[0]))
+	flag.PrintDefaults()
 }
 
 func main() {
-	err := netup.Run("netupvim", "vim.exe", sources)
-	if err != nil {
+	if err := run(); err != nil {
 		netup.LogFatal(err)
 	}
 }
