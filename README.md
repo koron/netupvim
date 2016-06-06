@@ -2,8 +2,8 @@
 
 [Jump to English](#english)
 
-netupvim は Windows に Vim (香り屋版) をネットワーク経由で更新、修復、もしくは
-インストールするためのプログラムです。
+netupvim は Windows 用の Vim (香り屋版) をネットワーク経由で更新、修復、もしく
+はインストールするためのプログラムです。
 
 ## 使い方
 
@@ -79,7 +79,7 @@ source = "vim.org"
 る可能性があることに留意してください。
 
 また、一度 netupvim を実行した後で `source` プロパティを変更した場合の動作は未
-定義です。直近でサポートするつもりはありません。
+定義です。直近でサポートする予定はありません。
 
 ### 実行回数制限
 
@@ -113,8 +113,8 @@ Windows.
 
 ### Setup
 
-Unarchive a downloaded archive file, then copy below three files into your
-folder where you install Vim (or you are going to install).
+Extract a downloaded archive file, then copy below three files into the folder
+where you have installed Vim (or you are going to install).
 
 *   netupvim.exe
 *   UPDATE.bat
