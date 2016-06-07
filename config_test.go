@@ -80,4 +80,10 @@ func TestLoadConfigAll(t *testing.T) {
 	if c.CPU != "baz" {
 		t.Errorf("c.CPU should be \"baz\": %q", c.CPU)
 	}
+	if c.LogRotateCount != 1234 {
+		t.Errorf("c.LogRotateCount is unexpected: %d", c.LogRotateCount)
+	}
+	if c.ExeRotateCount != 5678 {
+		t.Errorf("c.ExeRotateCount is unexpected: %d", c.ExeRotateCount)
+	}
 }

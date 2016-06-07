@@ -23,6 +23,9 @@ var (
 
 	// LogRotateCount is used for log rotation.
 	LogRotateCount = 5
+
+	// ExeRotateCount is used for executable files rotation.
+	ExeRotateCount = 5
 )
 
 // Update updates or installs a package into target directory.

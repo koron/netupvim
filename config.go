@@ -34,6 +34,12 @@ type config struct {
 
 	// DownloadTimeout is timeout for downloading archive (default: "5min")
 	DownloadTimeout string
+
+	// LogRotateCount is used for log rotation.
+	LogRotateCount int `toml:"log_rotate_count"`
+
+	// ExeRotateCount is used for executable files rotation.
+	ExeRotateCount int `toml:"exe_rotate_count"`
 }
 
 func loadConfig(name string) (*config, error) {
