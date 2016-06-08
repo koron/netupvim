@@ -16,6 +16,21 @@ netupvim は Windows 用の Vim (香り屋版) をネットワーク経由で更
 *   UPDATE.bat
 *   RESTORE.bat
 
+#### プロキシーを使う
+
+会社内で利用するなど、HTTP/HTTPS のアクセスにプロキシを使う必要がある場合は、環
+境変数 `HTTPS_PROXY` 及び `HTTP_PROXY` を設定してください。これにより netupvim
+のネットワークアクセスはすべてプロキシ経由になります。
+
+環境変数名    |設定値の例
+--------------|----------------------------
+`HTTPS_PROXY` |`https://my.proxy.url:8443`
+`HTTP_PROXY`  |`http://my.proxy.url:8080`
+
+Windows10 での環境変数の設定方法は、以下のページを参照してください。
+
+* [Windows 10 で環境変数を設定する](http://waman.hatenablog.com/entry/2015/12/09/085415)
+
 ### 更新(通常のアップデート)
 
 UPDATE.bat をダブルクリックして実行してください。しばらく待つと Vim の差分
