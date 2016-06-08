@@ -135,6 +135,23 @@ where you have installed Vim (or you are going to install).
 *   UPDATE.bat
 *   RESTORE.bat
 
+#### HTTPS/HTTP Proxy
+
+You should setup two environment variables `HTTPS_PROXY` and `HTTP_PROXY`, when
+you use netupvim at the network which need proxy to access HTTPS/HTTP.
+Netupvim will use the proxy to access HTTPS/HTTP when these environment
+variables are available.
+
+Env Name      |Value Example
+--------------|----------------------------
+`HTTPS_PROXY` |`https://my.proxy.url:8443`
+`HTTP_PROXY`  |`http://my.proxy.url:8080`
+
+Please refer below links to set environment variables on Windows10.
+
+* http://superuser.com/a/949573
+* https://youtu.be/C-U9SGaNbwY
+
 ### Update
 
 Double click UPDATE.bat and execute it.  After a while, netupvim has finished
