@@ -42,7 +42,7 @@ func Update(targetDir, workDir string, srcPack SourcePack, arch Arch, restoreFla
 
 	// setup environment.
 	downloadTimeout = DownloadTimeout
-	if GithubUser != "" && GithubToken != "" {
+	if GithubToken != "" {
 		github.DefaultClient.Username = GithubUser
 		github.DefaultClient.Token = GithubToken
 	}
