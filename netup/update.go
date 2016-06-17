@@ -43,7 +43,6 @@ func Update(targetDir, workDir string, srcPack SourcePack, arch Arch, restoreFla
 	// setup environment.
 	downloadTimeout = DownloadTimeout
 	if GithubToken != "" {
-		github.DefaultClient.Username = GithubUser
 		github.DefaultClient.Token = GithubToken
 	}
 
@@ -60,6 +59,9 @@ func Update(targetDir, workDir string, srcPack SourcePack, arch Arch, restoreFla
 	}
 
 	logSetup(ctx.logDir, LogRotateCount)
+	if GithubUser != "" {
+		logWarn("GithubUser (from config or env) is deprecated and ignored")
+	}
 	if GithubVerbose {
 		github.DefaultClient.Logger = logger
 	}

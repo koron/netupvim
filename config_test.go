@@ -66,6 +66,19 @@ func TestLoadConfigCPU(t *testing.T) {
 	}
 }
 
+func TestLoadGithub(t *testing.T) {
+	c, err := loadConfig("test_data/github.ini")
+	if err != nil {
+		t.Fatalf("loadConfig(github) should be succeeded: %s", err)
+	}
+	if c.GithubUser != "foo" {
+		t.Errorf("c.GithubUser should be %q: %q", "foo", c.GithubUser)
+	}
+	if c.GithubToken != "0123456789abcdef" {
+		t.Errorf("c.GithubToken should be %q: %q", "0123456789abcdef", c.GithubToken)
+	}
+}
+
 func TestLoadConfigAll(t *testing.T) {
 	c, err := loadConfig("test_data/all.ini")
 	if err != nil {

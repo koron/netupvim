@@ -24,6 +24,7 @@ type config struct {
 	CPU string `toml:"cpu"`
 
 	// GithubUser is username which be used for github's basic auth.
+	// DEPRECATED.
 	GithubUser string `toml:"github_user"`
 
 	// GithubToken is token which be used for github's basic auth.
