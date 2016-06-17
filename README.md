@@ -29,7 +29,7 @@ netupvim は Windows 用の Vim (香り屋版) をネットワーク経由で更
 
 Windows10 での環境変数の設定方法は、以下のページを参照してください。
 
-* [Windows 10 で環境変数を設定する](http://waman.hatenablog.com/entry/2015/12/09/085415)
+*   [Windows 10 で環境変数を設定する](http://waman.hatenablog.com/entry/2015/12/09/085415)
 
 ### 更新(通常のアップデート)
 
@@ -103,17 +103,21 @@ netupvim は GitHub API の回数制限の影響を受けます。そのため�
 となるため、ルーターを通して複数のコンピューターが接続している場合には、一括で
 制限を受けることに注意してください。
 
-この制限を緩和するには GitHub のトークンを準備し、netupvim へ設定してください。
-トークンを用いることで、制限回数は1時間あたり5000回に拡張されます。設定には、設
-定ファイルの `github_token`、もしくは環境変数の `NETUPVIM_GITHUB_TOKEN` を使っ
-てください。設定ファイルと環境変数の両方を設定した場合には、設定ファイルのもの
-が優先されます。以下は netupvim.ini の設定例です。
+この制限を緩和するには GitHub の Personal access token (以下トークン) を作成
+し、netupvim へ設定してください。トークンを設定することで、制限回数は1時間あた
+り5000回に拡張されます。設定には、設定ファイルの `github_token`、もしくは環境変
+数の `NETUPVIM_GITHUB_TOKEN` を使ってください。設定ファイルと環境変数の両方を設
+定した場合には、設定ファイルのものが優先されます。以下は netupvim.ini の設定例
+です。
 
 ```ini
 github_token = "0123456789abcdef0123456789abcdef'
 ```
 
-FIXME: トークンの作成・取得方法を解説する
+トークンを作成する方法は [Creating an access token for command-line use][1] を
+参照してください。netupvim で利用するトークンはいかなるスコープ(権限)も必要とし
+ていません。そのため参照先の手順5. "Select the scopes you with to grant to this
+token" では、1つもスコープを選択しないで構いません。
 
 ---
 
@@ -147,8 +151,8 @@ Env Name      |Value Example
 
 Please refer below links to set environment variables on Windows10.
 
-* http://superuser.com/a/949573
-* https://youtu.be/C-U9SGaNbwY
+*   <http://superuser.com/a/949573>
+*   <https://youtu.be/C-U9SGaNbwY>
 
 ### Update
 
@@ -178,3 +182,5 @@ determined from the time to execute.  Ex: `20160502T021805+0900.log`
 ## For Expert
 
 TODO: translate me.
+
+[1]: https://help.github.com/articles/creating-an-access-token-for-command-line-use/
