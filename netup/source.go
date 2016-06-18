@@ -76,7 +76,7 @@ type GithubSource struct {
 var _ Source = (*GithubSource)(nil)
 
 func (gs *GithubSource) download(d string, p time.Time, f progressFunc) (string, error) {
-	a, err := gs.fetchAsset()
+	a, err := gs.fetchAsset(p)
 	if err != nil {
 		return "", err
 	}
@@ -95,9 +95,12 @@ func (gs *GithubSource) name() string {
 	return gs.Name
 }
 
-func (gs *GithubSource) fetchAsset() (*github.Asset, error) {
-	r, err := github.Latest(gs.User, gs.Project)
+func (gs *GithubSource) fetchAsset(pivot time.Time) (*github.Asset, error) {
+	r, err := github.LatestIfModifiedSince(gs.User, gs.Project, pivot)
 	if err != nil {
+		if err == github.ErrNotModified {
+			err = errSourceNotModified
+		}
 		return nil, err
 	}
 	if r.Draft || r.PreRelease {
