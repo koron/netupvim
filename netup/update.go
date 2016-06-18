@@ -33,7 +33,7 @@ func Update(targetDir, workDir string, srcPack SourcePack, arch Arch, restoreFla
 	// deterine source.
 	cpu, err := arch.detectCPU(targetDir)
 	if err != nil {
-		return err
+		return fmt.Errorf("can't detect CPU: %s", err)
 	}
 	src, ok := srcPack[cpu]
 	if !ok {

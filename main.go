@@ -44,6 +44,7 @@ func setup() error {
 	netup.DownloadTimeout = conf.getDownloadTimeout()
 	netup.GithubUser = conf.getGithubUser()
 	netup.GithubToken = conf.getGithubToken()
+	netup.GithubVerbose = conf.GithubVerbose
 	if conf.LogRotateCount > 0 {
 		netup.LogRotateCount = conf.LogRotateCount
 	}
