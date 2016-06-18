@@ -29,7 +29,22 @@ netupvim は Windows 用の Vim (香り屋版) をネットワーク経由で更
 
 Windows10 での環境変数の設定方法は、以下のページを参照してください。
 
-*   [Windows 10 で環境変数を設定する](http://waman.hatenablog.com/entry/2015/12/09/085415)
+*   [Windows 10 で環境変数を設定する][2]
+
+ユーザー認証(ユーザー名とパスワードの入力)が必要なプロキシを利用している場合に
+は、環境変数で指定するURLに以下のようなフォーマットで追加してください。
+
+    https://{username}:{password}@{host}:{port}
+    http://{username}:{password}@{host}:{port}
+
+`username` が `foo@example.com` で `password` が `bar123456` の場合には、設定す
+る値は以下のようになるでしょう。
+
+    https://foo%40example.com:bar123456@my.proxy.url:8443
+    http://foo%40example.com:bar123456@my.proxy.url:8080
+
+`username` と `password` はそれぞれ URL エンコードする必要があります。そのため
+上記の例では `@` を `%40` に変換しています。
 
 ### 更新(通常のアップデート)
 
@@ -154,6 +169,22 @@ Please refer below links to set environment variables on Windows10.
 *   <http://superuser.com/a/949573>
 *   <https://youtu.be/C-U9SGaNbwY>
 
+If you use the proxy which requires authorization (input username and
+password), you should add those username and password into the URL in above
+environment variables in format below.
+
+    https://{username}:{password}@{host}:{port}
+    http://{username}:{password}@{host}:{port}
+
+Example: `username` is `foo@example.com` and `password` is `bar123456`, it
+would be like this:
+
+    https://foo%40example.com:bar123456@my.proxy.url:8443
+    http://foo%40example.com:bar123456@my.proxy.url:8080
+
+Both `username` and `password` should be encoded as URL.  Therefore `@` is
+coverted to `%40` in above example.
+
 ### Update
 
 Double click UPDATE.bat and execute it.  After a while, netupvim has finished
@@ -184,3 +215,4 @@ determined from the time to execute.  Ex: `20160502T021805+0900.log`
 TODO: translate me.
 
 [1]: https://help.github.com/articles/creating-an-access-token-for-command-line-use/
+[2]: http://waman.hatenablog.com/entry/2015/12/09/085415
