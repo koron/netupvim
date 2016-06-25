@@ -41,6 +41,9 @@ type config struct {
 
 	// ExeRotateCount is used for executable files rotation.
 	ExeRotateCount int `toml:"exe_rotate_count"`
+
+	// DisableSelfUpdate disables netupvim's self update.
+	DisableSelfUpdate bool `toml:"disable_self_update"`
 }
 
 func loadConfig(name string) (*config, error) {

@@ -14,6 +14,7 @@ var (
 	sourceName = "release"
 	cpu        string
 	restore    bool
+	selfUpdate = true
 )
 
 func setup() error {
@@ -40,6 +41,7 @@ func setup() error {
 	sourceName = *sourceOpt
 	restore = *restoreOpt
 	cpu = conf.CPU
+	selfUpdate = !conf.DisableSelfUpdate
 
 	netup.DownloadTimeout = conf.getDownloadTimeout()
 	netup.GithubUser = conf.getGithubUser()
@@ -53,6 +55,14 @@ func setup() error {
 	}
 
 	return nil
+}
+
+func shouldSelfUpdate() bool {
+	if !selfUpdate {
+		return false
+	}
+	_, err := os.Stat(filepath.Join(targetDir, "netupvim.exe"))
+	return err == nil
 }
 
 func run() error {
@@ -75,7 +85,7 @@ func run() error {
 		return err
 	}
 	// try to update netupvim
-	if _, err := os.Stat(filepath.Join(targetDir, "netupvim.exe")); err == nil {
+	if shouldSelfUpdate() {
 		netup.LogInfo("trying to update netupvim")
 		err := netup.Update(
 			targetDir,
