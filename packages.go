@@ -27,24 +27,24 @@ var vimSet = map[string]netup.SourcePack{
 	"develop": {
 		arch.X86: &netup.DirectSource{
 			Name:  "vim",
-			URL:   "http://files.kaoriya.net/vim/vim74-kaoriya-win32.zip",
+			URL:   "https://files.kaoriya.net/vim/vim-kaoriya-win32-develop.zip",
 			Strip: 1,
 		},
 		arch.AMD64: &netup.DirectSource{
 			Name:  "vim",
-			URL:   "http://files.kaoriya.net/vim/vim74-kaoriya-win64.zip",
+			URL:   "https://files.kaoriya.net/vim/vim-kaoriya-win64-develop.zip",
 			Strip: 1,
 		},
 	},
 	"canary": {
 		arch.X86: &netup.DirectSource{
 			Name:  "vim",
-			URL:   "http://files.kaoriya.net/vim/vim74-kaoriya-win32-test.zip",
+			URL:   "https://files.kaoriya.net/vim/vim-kaoriya-win32-canary.zip",
 			Strip: 1,
 		},
 		arch.AMD64: &netup.DirectSource{
 			Name:  "vim",
-			URL:   "http://files.kaoriya.net/vim/vim74-kaoriya-win64-test.zip",
+			URL:   "https://files.kaoriya.net/vim/vim-kaoriya-win64-canary.zip",
 			Strip: 1,
 		},
 	},
