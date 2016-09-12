@@ -1,4 +1,7 @@
-include VERSION
+#include VERSION
+
+DESCRIBE_TAG = $(shell git describe --tags)
+VERSION = $(DESCRIBE_TAG)
 
 default: test
 
@@ -37,4 +40,4 @@ netupvim-$(VERSION).zip: netupvim.exe
 	zip -r9 netupvim-$(VERSION).zip netupvim.exe UPDATE.bat RESTORE.bat
 
 netupvim.exe:
-	GOOS=windows GOARCH=386 go build
+	GOOS=windows GOARCH=386 go build -ldflags="-X main.version=$(VERSION)"

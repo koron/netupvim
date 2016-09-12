@@ -10,6 +10,10 @@ import (
 )
 
 var (
+	version	   = "none"
+)
+
+var (
 	targetDir  = "."
 	sourceName = "release"
 	cpu        string
@@ -29,10 +33,15 @@ func setup() error {
 		targetOpt  = flag.String("t", conf.getTargetDir(), "target dir to upgrade/install")
 		sourceOpt  = flag.String("s", conf.getSource(), "source of update: release,develop,canary")
 		restoreOpt = flag.Bool("restore", false, "force download & extract all files")
+		versionOpt = flag.Bool("version", false, "show version")
 	)
 	flag.Parse()
 	if *helpOpt {
 		showHelp()
+		os.Exit(1)
+	}
+	if *versionOpt {
+		showVersion()
 		os.Exit(1)
 	}
 
@@ -108,6 +117,10 @@ Usage: %[1]s [options]
 Options are:
 `, filepath.Base(os.Args[0]))
 	flag.PrintDefaults()
+}
+
+func showVersion() {
+	fmt.Fprintf(os.Stderr, "netupvim version %s\n", version)
 }
 
 func main() {
