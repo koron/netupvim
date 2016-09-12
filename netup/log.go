@@ -100,6 +100,7 @@ func logSetup(dir string, count int) {
 	}
 	logDir, logFile = dir, f
 	logger = log.New(f, "", log.LstdFlags|log.Lmicroseconds)
+	logInfo("netup version %s, start logging", Version)
 }
 
 // LogInfo records a message to logger file.

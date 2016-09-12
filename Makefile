@@ -1,5 +1,3 @@
-#include VERSION
-
 DESCRIBE_TAG = $(shell git describe --tags)
 VERSION = $(DESCRIBE_TAG)
 

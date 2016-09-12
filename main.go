@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	version	   = "none"
+	version = "none"
 )
 
 var (
@@ -52,6 +52,7 @@ func setup() error {
 	cpu = conf.CPU
 	selfUpdate = !conf.DisableSelfUpdate
 
+	netup.Version = version
 	netup.DownloadTimeout = conf.getDownloadTimeout()
 	netup.GithubUser = conf.getGithubUser()
 	netup.GithubToken = conf.getGithubToken()

@@ -9,6 +9,11 @@ import (
 )
 
 var (
+	// Version stores version to log.
+	Version = "none"
+)
+
+var (
 	// DownloadTimeout is timeout for download file.
 	DownloadTimeout = 5 * time.Minute
 
