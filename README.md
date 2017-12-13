@@ -80,6 +80,20 @@ Vim をインストールしていない状態で更新を実行すると、イ�
 netupvim は、実行時のカレントディレクトリにある設定ファイル netupvim.ini を起動
 時に読み込みます。
 
+このファイルで設定できる項目は以下のとおりです。
+
+項目                    |説明
+------------------------|-----------------------------------------------------
+`source`                |取得・更新するリリースの種類。release, develop, canaly, vim.org のいずれか。デフォルトは release
+`target_dir`            |更新対象のディレクトリ。デフォルトはカレントディレクトリで、通常は指定する必要はない
+`cpu`                   |CPUの種類: x86, amd64 のどちらかで、デフォルトは自動判定
+`github_token`          |更新確認を頻繁に行えるようにするためのトークン。取得方法は別セクションを参照。環境変数 `NETUPVIM_GITHUB_TOKEN` でも設定できる
+`github_verbose`        |GitHub との通信をデバッグするためのオプション
+`download_timeout`      |ダウンロードのタイムアウト。デフォルトは "5m"
+`log_rotate_count`      |ログローテーションの世代数
+`exe_rotate_count`      |実行ファイルローテーションの世代数
+`disable_self_update`   |netupvim 自身の更新を抑制する
+                               
 ### 開発版の利用
 
 開発版を利用したい場合には、設定ファイルの `source` プロパティを以下のように設
@@ -183,7 +197,7 @@ would be like this:
     http://foo%40example.com:bar123456@my.proxy.url:8080
 
 Both `username` and `password` should be encoded as URL.  Therefore `@` is
-coverted to `%40` in above example.
+converted to `%40` in above example.
 
 ### Update
 
@@ -203,7 +217,7 @@ is executing, but you should restart Vim, after finished to restore.
 
 ### When met trouble
 
-When you met some troubles, plesae send log file to the issue tracker.
+When you met some troubles, please send log file to the issue tracker.
 
 <https://github.com/koron/netupvim/issues/new>
 
@@ -212,7 +226,26 @@ determined from the time to execute.  Ex: `20160502T021805+0900.log`
 
 ## For Expert
 
-TODO: translate me.
+### Configuration file
+
+Netupvim reads a configuration file "netupvim.ini" in current directory when
+started.
+
+Configurable items by the file are listed in below:
+
+Item                    |Description
+------------------------|-----------------------------------------------------
+`source`                | Channel to update: one of "release", "develop", "canaly" or "vim.org". Default is "release".
+`target_dir`            | Direct to update. Default is current directory, and shouldn't be set usually.
+`cpu`                   | CPU architecture: one of "x86" or "amd64". Default will be detected automatically.
+`github_token`          | The GitHub's token to check update more frequently. See other section for more details. It can be set by `NETUPVIM_GITHUB_TOKEN` env.
+`github_verbose`        | Enable debug log for communication with GitHub.
+`download_timeout`      | Timeout for download operations. Default is "5m".
+`log_rotate_count`      | Number of generations for log file rotation.
+`exe_rotate_count`      | Number of generations for ".exe" file rotation.
+`disable_self_update`   | Disable netupvim's self update.
+
+### TODO: translate other sections.
 
 [1]: https://help.github.com/articles/creating-an-access-token-for-command-line-use/
 [2]: http://waman.hatenablog.com/entry/2015/12/09/085415
