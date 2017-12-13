@@ -79,6 +79,16 @@ func TestLoadGithub(t *testing.T) {
 	}
 }
 
+func TestLoadTimeout(t *testing.T) {
+	c, err := loadConfig("test_data/timeout.ini")
+	if err != nil {
+		t.Fatalf("loadConfig(timeout) should be succeeded: %s", err)
+	}
+	if c.DownloadTimeout != "1200s" {
+		t.Errorf("c.DownloadTimeout should be %q: %q", "1200s", c.DownloadTimeout)
+	}
+}
+
 func TestLoadConfigAll(t *testing.T) {
 	c, err := loadConfig("test_data/all.ini")
 	if err != nil {
