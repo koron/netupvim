@@ -34,7 +34,7 @@ type config struct {
 	GithubVerbose bool `toml:"github_verbose"`
 
 	// DownloadTimeout is timeout for downloading archive (default: "5min")
-	DownloadTimeout string
+	DownloadTimeout string `toml:"download_timeout"`
 
 	// LogRotateCount is used for log rotation.
 	LogRotateCount int `toml:"log_rotate_count"`
