@@ -98,7 +98,11 @@ func (c *config) getGithubToken() string {
 
 func (c *config) getDownloadTimeout() time.Duration {
 	if c.DownloadTimeout == "" {
-		return 5 * time.Minute
+	        if env, ok := os.LookupEnv("NETUPVIM_DOWNLOAD_TIMEOUT"); ok {
+                        c.DownloadTimeout := env
+		} else {
+                        return 5 * time.Minute
+		}
 	}
 	t, err := time.ParseDuration(c.DownloadTimeout)
 	if err != nil {
