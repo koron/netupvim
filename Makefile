@@ -26,6 +26,9 @@ report:
 
 exe: netupvim.exe
 
+release: clean zip
+.PHONY: release
+
 zip: netupvim-$(VERSION).zip
 
 clean:
