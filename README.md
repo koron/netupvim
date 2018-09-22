@@ -84,7 +84,7 @@ netupvim は、実行時のカレントディレクトリにある設定ファ�
 
 項目                    |説明
 ------------------------|-----------------------------------------------------
-`source`                |取得・更新するリリースの種類。release, develop, canaly, vim.org のいずれか。デフォルトは release
+`source`                |取得・更新するリリースの種類。release, develop, canary, vim.org のいずれか。デフォルトは release
 `target_dir`            |更新対象のディレクトリ。デフォルトはカレントディレクトリで、通常は指定する必要はない
 `cpu`                   |CPUの種類: x86, amd64 のどちらかで、デフォルトは自動判定
 `github_token`          |更新確認を頻繁に行えるようにするためのトークン。取得方法は別セクションを参照。環境変数 `NETUPVIM_GITHUB_TOKEN` でも設定できる
@@ -235,7 +235,7 @@ Configurable items by the file are listed in below:
 
 Item                    |Description
 ------------------------|-----------------------------------------------------
-`source`                | Channel to update: one of "release", "develop", "canaly" or "vim.org". Default is "release".
+`source`                | Channel to update: one of "release", "develop", "canary" or "vim.org". Default is "release".
 `target_dir`            | Direct to update. Default is current directory, and shouldn't be set usually.
 `cpu`                   | CPU architecture: one of "x86" or "amd64". Default will be detected automatically.
 `github_token`          | The GitHub's token to check update more frequently. See other section for more details. It can be set by `NETUPVIM_GITHUB_TOKEN` env.
