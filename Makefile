@@ -24,6 +24,12 @@ report:
 	@echo ""
 	golint ./...
 
+deps-list:
+	@go list -f '{{join .Imports "\n"}}' ./... | sort -u | grep -v `go list`
+
+deps-update:
+	@go list -f '{{join .Imports "\n"}}' ./... | sort -u | grep -v `go list` | xargs go get -u -d -v
+
 exe: netupvim.exe
 
 release: clean zip
