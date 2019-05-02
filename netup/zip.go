@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-
-	"github.com/koron/go-zipext"
 )
 
 type extractProgressor func(curr, max uint64)
@@ -61,7 +59,7 @@ func newZipFileProc(dir string, stripCount int, prev, curr fileInfoTable) func(z
 		if err := extractZipFile(zf, outName); err != nil {
 			return false, err
 		}
-		t := zipext.Parse(zf).ModTime()
+		t := zf.Modified
 		os.Chtimes(outName, t, t)
 		return true, nil
 	}
