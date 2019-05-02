@@ -135,8 +135,6 @@ func downloadFilepath(inURL, outdir string) (string, error) {
 	return filepath.Join(outdir, filepath.Base(u.Path)), nil
 }
 
-var downloadTimeout = 5 * time.Minute
-
 func downloadAsFile(inURL, outPath string, pivot time.Time, pf progressFunc) error {
 	req, err := http.NewRequest("GET", inURL, nil)
 	if err != nil {
@@ -148,7 +146,7 @@ func downloadAsFile(inURL, outPath string, pivot time.Time, pf progressFunc) err
 	}
 	logInfo("download URL %s as file %s", inURL, outPath)
 	msgPrintf("download %s\n", inURL)
-	client := http.Client{Timeout: downloadTimeout}
+	client := http.Client{Timeout: DownloadTimeout}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err

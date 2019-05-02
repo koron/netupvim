@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/koron/netupvim/internal/rotate"
 )
 
 var (
@@ -100,6 +102,7 @@ func logSetup(dir string, count int) {
 	}
 	logDir, logFile = dir, f
 	logger = log.New(f, "", log.LstdFlags|log.Lmicroseconds)
+	rotate.Logger = logger
 	logInfo("netup version %s, start logging", Version)
 }
 

@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"golang.org/x/xerrors"
 )
 
 type context struct {
@@ -15,6 +17,27 @@ type context struct {
 	tmpDir    string
 	varDir    string
 	source    Source
+}
+
+func newContext(targetDir, workDir string, srcPack SourcePack, arch Arch) (*context, error) {
+	// deterine source.
+	cpu, err := arch.detectCPU(targetDir)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to detect CPU: %w", err)
+	}
+	src, ok := srcPack[cpu]
+	if !ok {
+		return nil, xerrors.Errorf("unsupported arch: %+v", arch)
+	}
+
+	return &context{
+		targetDir: targetDir,
+		dataDir:   workDir,
+		logDir:    filepath.Join(workDir, "log"),
+		tmpDir:    filepath.Join(workDir, "tmp"),
+		varDir:    filepath.Join(workDir, "var", src.name()),
+		source:    src,
+	}, nil
 }
 
 func (c *context) downloadPath(targetURL string) (string, error) {

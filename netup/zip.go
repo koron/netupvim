@@ -6,8 +6,9 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
+
+	"github.com/koron/netupvim/internal/rotate"
 )
 
 type extractProgressor func(curr, max uint64)
@@ -50,9 +51,8 @@ func newZipFileProc(dir string, stripCount int, prev, curr fileInfoTable) func(z
 			}
 		}
 		// rotation.
-		ext := strings.ToLower(path.Ext(zfName))
-		if ext == ".exe" || ext == ".dll" {
-			if err := rotateFiles(outName, ExeRotateCount); err != nil {
+		if rotate.IsTarget(zfName) {
+			if err := rotate.Rotate(outName, ExeRotateCount); err != nil {
 				return false, err
 			}
 		}
@@ -124,31 +124,6 @@ func stripPath(name string, count int) string {
 func evacuateName(name string) string {
 	base, ext := splitExt(name)
 	return base + ".orig" + ext
-}
-
-func rotateFiles(name string, max int) error {
-	last := rotateName(name, max)
-	err := os.Remove(last)
-	if err != nil && !os.IsNotExist(err) {
-		return err
-	}
-	for i := max - 1; i >= 0; i-- {
-		curr := rotateName(name, i)
-		err := os.Rename(curr, last)
-		if err != nil && !os.IsNotExist(err) {
-			return err
-		}
-		last = curr
-	}
-	return nil
-}
-
-func rotateName(name string, index int) string {
-	if index == 0 {
-		return name
-	}
-	base, ext := splitExt(name)
-	return base + "." + strconv.Itoa(index) + ext
 }
 
 func splitExt(name string) (base, ext string) {

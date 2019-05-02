@@ -15,6 +15,7 @@ netupvim は Windows 用の Vim (香り屋版) をネットワーク経由で更
 *   netupvim.exe
 *   UPDATE.bat
 *   RESTORE.bat
+*   SWEEP.bat
 
 #### プロキシーを使う
 
@@ -62,6 +63,13 @@ Vim をインストールしていない状態で更新を実行すると、イ�
 リストアするには RESTORE.bat を実行してください。しばらく待つと Vim の修復が完
 了します。Vim は起動中でも修復は実行できますが、修復完了後に Vim を再起動してく
 ださい。
+
+### 掃除(スウィープ)
+
+netupvim が作成したローテートファイルを削除するには、スウィープを実行してくださ
+い。
+
+スウィープするには SWEEP.bat を実行してください
 
 ### 問題が起こったら
 
@@ -214,6 +222,10 @@ You can restore Vim files, if there are some broken.
 Double click RESTORE.bat to restore those.  It will download recent Vim's
 archive and extract/install it forcibly after a while.  You can restore Vim, it
 is executing, but you should restart Vim, after finished to restore.
+
+### Sweep
+
+TODO: translate this block.
 
 ### When met trouble
 

@@ -1,11 +1,13 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 
+	"github.com/koron/go-github"
 	"github.com/koron/netupvim/netup"
 )
 
@@ -17,8 +19,10 @@ var (
 	targetDir  = "."
 	sourceName = "release"
 	cpu        string
-	restore    bool
 	selfUpdate = true
+
+	restoreMode bool
+	sweepMode   bool
 )
 
 func setup() error {
@@ -32,9 +36,10 @@ func setup() error {
 		helpOpt    = flag.Bool("h", false, "show this message")
 		targetOpt  = flag.String("t", conf.getTargetDir(), "target dir to upgrade/install")
 		sourceOpt  = flag.String("s", conf.getSource(), "source of update: release,develop,canary")
-		restoreOpt = flag.Bool("restore", false, "force download & extract all files")
 		versionOpt = flag.Bool("version", false, "show version")
 	)
+	flag.BoolVar(&restoreMode, "restore", false, "force download & extract all files")
+	flag.BoolVar(&sweepMode, "sweep", false, "sweep rotated files (.1.exe, .2.exe or so)")
 	flag.Parse()
 	if *helpOpt {
 		showHelp()
@@ -45,17 +50,20 @@ func setup() error {
 		os.Exit(1)
 	}
 
+	if sweepMode && restoreMode {
+		return errors.New(`can't be combined with "-sweep" and "-restore" flags`)
+	}
+
 	// setup context.
 	targetDir = *targetOpt
 	sourceName = *sourceOpt
-	restore = *restoreOpt
 	cpu = conf.CPU
 	selfUpdate = !conf.DisableSelfUpdate
 
 	netup.Version = version
 	netup.DownloadTimeout = conf.getDownloadTimeout()
 	netup.GithubUser = conf.getGithubUser()
-	netup.GithubToken = conf.getGithubToken()
+	github.DefaultClient.Token = conf.getGithubToken()
 	netup.GithubVerbose = conf.GithubVerbose
 	if conf.LogRotateCount > 0 {
 		netup.LogRotateCount = conf.LogRotateCount
@@ -85,12 +93,27 @@ func run() error {
 	if !ok {
 		return fmt.Errorf("invalid source: %s", sourceName)
 	}
+
+	if sweepMode {
+		err := netup.Sweep(targetDir, workDir, vimPack,
+			netup.Arch{Name: cpu, Hint: "vim.exe"})
+		if err != nil {
+			return err
+		}
+		err = netup.Sweep(targetDir, workDir, netupPack,
+			netup.Arch{Name: "X86"})
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
 	err := netup.Update(
 		targetDir,
 		workDir,
 		vimPack,
 		netup.Arch{Name: cpu, Hint: "vim.exe"},
-		restore)
+		restoreMode)
 	if err != nil {
 		return err
 	}
@@ -102,7 +125,7 @@ func run() error {
 			workDir,
 			netupPack,
 			netup.Arch{Name: "X86"},
-			restore)
+			restoreMode)
 		if err != nil {
 			netup.LogInfo("failed to udate netupvim: %s", err)
 		}
