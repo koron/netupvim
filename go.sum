@@ -1,0 +1,8 @@
+github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
+github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/koron/go-arch v0.0.0-20160618151021-a98bbbcd6e3c h1:6FD4JVnNgunCeO7mA/M4RJ+m96QdMsnmnxH5hUN8zyA=
+github.com/koron/go-arch v0.0.0-20160618151021-a98bbbcd6e3c/go.mod h1:Ot5706g4DwlC3cbmTMyHEuiU7mFZWY0WtkIhz+O+jmE=
+github.com/koron/go-github v0.0.0-20160618135937-92fbbed2e046 h1:YjgY0oqB2nqyVckaRdLhOGslSgcsy0+DlSczAZpPPlM=
+github.com/koron/go-github v0.0.0-20160618135937-92fbbed2e046/go.mod h1:14+A+rOS/yG6PtS3DKcRYYM9tP0+zVghPxIzqOYBXks=
+github.com/koron/go-zipext v0.0.0-20160622004412-38998600f712 h1:9BXh7lJdcFUojfCLPLakmkrMMfg8u2n3X5hMuMpAfVQ=
+github.com/koron/go-zipext v0.0.0-20160622004412-38998600f712/go.mod h1:C3aFNV8F01/pOfOkxRhJoIsvPa3YvA32e5ZFzD9R7mY=
