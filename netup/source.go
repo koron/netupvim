@@ -29,7 +29,7 @@ type progressFunc func(curr, max int64)
 type Source interface {
 	// download downloads source file to outdir, return its path name.
 	// if pivot is not zero, this checks changes of source from pivot.
-	download(outdir string, pivot time.Time, f progressFunc) (path string, err error)
+	download(outdir string, pivot time.Time, f progressFunc) (path string, updatedAt time.Time, err error)
 
 	stripCount() int
 
@@ -48,7 +48,7 @@ type DirectSource struct {
 
 var _ Source = (*DirectSource)(nil)
 
-func (ds *DirectSource) download(d string, p time.Time, f progressFunc) (string, error) {
+func (ds *DirectSource) download(d string, p time.Time, f progressFunc) (string, time.Time, error) {
 	return download(ds.URL, d, p, f)
 }
 
@@ -75,16 +75,20 @@ type GithubSource struct {
 
 var _ Source = (*GithubSource)(nil)
 
-func (gs *GithubSource) download(d string, p time.Time, f progressFunc) (string, error) {
+func (gs *GithubSource) download(d string, p time.Time, f progressFunc) (string, time.Time, error) {
 	a, err := gs.fetchAsset(p)
 	if err != nil {
-		return "", err
+		return "", time.Time{}, err
 	}
-	if !p.IsZero() && p.After(a.UpdatedAt) {
-		return "", errSourceNotModified
+	if !p.IsZero() && a.UpdatedAt.Sub(p) <= 0 {
+		return "", time.Time{}, errSourceNotModified
 	}
 	msgPrintln("found newer release on GitHub")
-	return download(a.DownloadURL, d, p, f)
+	path, _, err := download(a.DownloadURL, d, p, f)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	return path, a.UpdatedAt, nil
 }
 
 func (gs *GithubSource) stripCount() int {
@@ -135,10 +139,10 @@ func downloadFilepath(inURL, outdir string) (string, error) {
 	return filepath.Join(outdir, filepath.Base(u.Path)), nil
 }
 
-func downloadAsFile(inURL, outPath string, pivot time.Time, pf progressFunc) error {
+func downloadAsFile(inURL, outPath string, pivot time.Time, pf progressFunc) (time.Time, error) {
 	req, err := http.NewRequest("GET", inURL, nil)
 	if err != nil {
-		return err
+		return time.Time{}, err
 	}
 	if !pivot.IsZero() {
 		t := pivot.UTC().Format(http.TimeFormat)
@@ -149,31 +153,42 @@ func downloadAsFile(inURL, outPath string, pivot time.Time, pf progressFunc) err
 	client := http.Client{Timeout: DownloadTimeout}
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return time.Time{}, err
 	}
 	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusOK:
-		return saveBody(outPath, resp, pf)
+		mt := time.Now()
+		// use "Last-Modified" as updatedAt if available.
+		if s := resp.Header.Get("Last-Modified"); s != "" {
+			t, err := time.Parse(http.TimeFormat, s)
+			if err != nil {
+				logWarn("failed to parse time %q: %s", s, err)
+			} else {
+				mt = t
+			}
+		}
+		return mt, saveBody(outPath, resp, pf)
 	case http.StatusNotModified:
-		return errSourceNotModified
+		return time.Time{}, errSourceNotModified
 	default:
-		return fmt.Errorf("unexpected response: %s", resp.Status)
+		return time.Time{}, fmt.Errorf("unexpected response: %s", resp.Status)
 	}
 }
 
 // download downloads URL and saves as a file to outdir, return its path name.
 // if pivot is not zero, this checks changes of source after pivot.
-func download(inURL, outdir string, pivot time.Time, f progressFunc) (string, error) {
+func download(inURL, outdir string, pivot time.Time, f progressFunc) (string, time.Time, error) {
 	path, err := downloadFilepath(inURL, outdir)
 	if err != nil {
-		return "", err
+		return "", time.Time{}, err
 	}
-	if err := downloadAsFile(inURL, path, pivot, f); err != nil {
-		return "", err
+	mt, err := downloadAsFile(inURL, path, pivot, f)
+	if err != nil {
+		return "", time.Time{}, err
 	}
-	return path, nil
+	return path, mt, nil
 }
 
 func saveBody(outPath string, resp *http.Response, pf progressFunc) error {

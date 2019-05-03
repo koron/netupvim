@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 func saveFileInfo(fname string, t fileInfoTable) error {
@@ -68,12 +67,12 @@ func extract(zipName, dir string, stripCount int, recipeName string) error {
 func update(c *context) error {
 	src := c.source
 	logInfo("determined source: %s", src.String())
-	t, err := c.anchor()
+	at, err := c.anchor()
 	if err != nil {
 		return err
 	}
 	last := -1
-	p, err := src.download(c.tmpDir, t, func(curr, max int64) {
+	p, mt, err := src.download(c.tmpDir, at, func(curr, max int64) {
 		v := int(curr * 100 / max)
 		if v != last {
 			msgPrintProgress(v)
@@ -90,11 +89,10 @@ func update(c *context) error {
 	}
 	logInfo("download completed successfully")
 	// capture anchor's new value.
-	t = time.Now()
 	if err := extract(p, c.targetDir, src.stripCount(), c.recipePath()); err != nil {
 		return err
 	}
-	if err := c.updateAnchor(t); err != nil {
+	if err := c.updateAnchor(mt); err != nil {
 		c.resetAnchor()
 		return err
 	}
