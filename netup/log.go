@@ -83,6 +83,9 @@ func logSetup(dir string, count int) {
 	}
 	// remove old log files.
 	logs, err := logFiles(dir)
+	if err != nil {
+		logWarn("failed to read log directory: %s", err)
+	}
 	if len(logs) >= count {
 		for _, fi := range logs[:len(logs)-count+1] {
 			err := os.Remove(filepath.Join(dir, fi.Name()))

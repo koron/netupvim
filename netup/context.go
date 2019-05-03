@@ -2,7 +2,6 @@ package netup
 
 import (
 	"io"
-	"net/url"
 	"os"
 	"path/filepath"
 	"time"
@@ -38,14 +37,6 @@ func newContext(targetDir, workDir string, srcPack SourcePack, arch Arch) (*cont
 		varDir:    filepath.Join(workDir, "var", src.name()),
 		source:    src,
 	}, nil
-}
-
-func (c *context) downloadPath(targetURL string) (string, error) {
-	u, err := url.Parse(targetURL)
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(c.tmpDir, filepath.Base(u.Path)), nil
 }
 
 func (c *context) recipePath() string {

@@ -5,10 +5,6 @@ import (
 	"strings"
 )
 
-func msgPrint(v ...interface{}) {
-	fmt.Print(v...)
-}
-
 func msgPrintln(v ...interface{}) {
 	fmt.Println(v...)
 }

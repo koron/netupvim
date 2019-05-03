@@ -18,14 +18,22 @@ func Sweep(targetDir, workDir string, srcPack SourcePack, arch Arch) error {
 	}
 
 	for _, fi := range curr {
-		if !rotate.IsTarget(fi.name) {
-			continue
-		}
-		err := rotate.Sweep(fi.name, ExeRotateCount)
+		err := sweepFile(fi.name)
 		if err != nil {
 			return err
 		}
 	}
 
+	return nil
+}
+
+func sweepFile(name string) error {
+	if !rotate.IsTarget(name) {
+		return nil
+	}
+	err := rotate.Sweep(name, ExeRotateCount)
+	if err != nil {
+		return err
+	}
 	return nil
 }

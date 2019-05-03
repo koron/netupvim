@@ -6,7 +6,8 @@ import (
 	"hash/crc32"
 	"io"
 	"os"
-	"path/filepath"
+	"path"
+	"strings"
 )
 
 type compareResult int
@@ -49,6 +50,14 @@ func (info fileInfo) compareWithFile(name string) (compareResult, error) {
 	return fileIsMatch, nil
 }
 
+func (info fileInfo) dir() string {
+	return path.Dir(info.name)
+}
+
+func (info fileInfo) dirList() []string {
+	return strings.Split(info.dir(), "/")
+}
+
 type fileInfoTable map[string]fileInfo
 
 func loadFileInfo(fname string) (fileInfoTable, error) {
@@ -76,18 +85,6 @@ func loadFileInfo(fname string) (fileInfoTable, error) {
 	return t, nil
 }
 
-func (t fileInfoTable) save(fname string) error {
-	f, err := os.Create(fname)
-	if err != nil {
-		return nil
-	}
-	defer f.Close()
-	for _, v := range t {
-		fmt.Fprintf(f, fileInfoFormat, v.name, v.size, v.hash)
-	}
-	return f.Sync()
-}
-
 func calcCRC32(name string) (uint32, error) {
 	r, err := os.Open(name)
 	if err != nil {
@@ -99,18 +96,4 @@ func calcCRC32(name string) (uint32, error) {
 		return 0, err
 	}
 	return h.Sum32(), nil
-}
-
-// cleanFiles removes unused/untracked files.
-func (t fileInfoTable) clean(dir string, prev fileInfoTable) {
-	for _, p := range prev {
-		if _, ok := t[p.name]; ok {
-			continue
-		}
-		fpath := filepath.Join(dir, p.name)
-		if r, _ := p.compareWithFile(fpath); r != fileIsMatch {
-			continue
-		}
-		os.Remove(fpath)
-	}
 }
